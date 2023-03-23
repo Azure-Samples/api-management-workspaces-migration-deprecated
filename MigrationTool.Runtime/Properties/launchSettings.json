@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MigrationTool.Runtime": {
+      "commandName": "Project",
+      "commandLineArgs": "-r devenv -s a200340d-6b82-494d-9dbf-687ba6e33f9e"
+    }
+  }
+}

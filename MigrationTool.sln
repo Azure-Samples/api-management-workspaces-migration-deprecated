@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationTool.Runtime", "MigrationTool.Runtime\MigrationTool.Runtime.csproj", "{AB41521B-3E04-41A7-B0E7-0FEC924A2702}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationTool.Migration.Domain", "MigrationTool.Migration.Domain\MigrationTool.Migration.Domain.csproj", "{DAE47D14-219B-454F-9ECB-0561003216BF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmTemplates", "azure-api-management-devops-resource-kit\src\ArmTemplates\ArmTemplates.csproj", "{B5183465-2BC1-4206-9C9F-5AC9615AC941}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AB41521B-3E04-41A7-B0E7-0FEC924A2702}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB41521B-3E04-41A7-B0E7-0FEC924A2702}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB41521B-3E04-41A7-B0E7-0FEC924A2702}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB41521B-3E04-41A7-B0E7-0FEC924A2702}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAE47D14-219B-454F-9ECB-0561003216BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAE47D14-219B-454F-9ECB-0561003216BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAE47D14-219B-454F-9ECB-0561003216BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAE47D14-219B-454F-9ECB-0561003216BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5183465-2BC1-4206-9C9F-5AC9615AC941}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5183465-2BC1-4206-9C9F-5AC9615AC941}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5183465-2BC1-4206-9C9F-5AC9615AC941}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5183465-2BC1-4206-9C9F-5AC9615AC941}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0E4EC609-54B6-4C24-9CB9-6B3092A5B60C}
+	EndGlobalSection
+EndGlobal
