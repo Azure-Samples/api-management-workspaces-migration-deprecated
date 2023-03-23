@@ -5,7 +5,7 @@ namespace MigrationTool.Migration.Domain.Entities;
 public record Entity(string Id, string DisplayName, EntityType Type, TemplateResource ArmTemplate)
 {
     public override string ToString() 
-        => $"Entity{{{nameof(this.Type)}: {this.Type}, {nameof(this.DisplayName)}: {this.DisplayName}}}";
+        => $"{this.Type}: {this.DisplayName}";
 
     public override int GetHashCode() 
         => HashCode.Combine(this.Id, (int)this.Type);

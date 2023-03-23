@@ -12,6 +12,7 @@ using MigrationTool.Migration.Domain.Executor;
 using MigrationTool.Migration.Domain.Executor.Operations;
 using MigrationTool.Migration.Domain.Planner;
 using Sharprompt;
+using System;
 
 public class Program
 {
@@ -27,7 +28,9 @@ public class Program
     public static async Task MigrationProgram(MigrationProgramConfig config)
     {
         ServiceProvider = CreateServiceProvider(config);
+        Console.WriteLine("Fetching apis...");
         var apis = await ChooseApis();
+        Console.WriteLine("Fetching workspaces...");
         var workspace = await ChooseWorkspace();
         if (workspace == null)
         {
@@ -35,7 +38,9 @@ public class Program
             return;
         }
         var dependencyGraphBuilder = ServiceProvider.GetRequiredService<DependencyGraphBuilder>();
+        Console.WriteLine("Fetching dependencies...");
         var graph = await dependencyGraphBuilder.Build(apis);
+        Console.WriteLine("Building migration plan...");
         var plan = MigrationPlanner.Plan(graph, MigrationType.Copy);
         Console.WriteLine(plan);
         if (Prompt.Confirm("Confirm migration plan?"))
