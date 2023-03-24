@@ -1,0 +1,52 @@
+name: CI - Code
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+    - .github/workflows/ci.yml
+    - src/**
+
+env:
+  dotnetVersion: '6.0.x'
+
+# Assign permissions for unit tests to be reported.
+# See https://github.com/dorny/test-reporter/issues/168
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  verify_codebase:
+    name: Verify Codebase
+    runs-on: ubuntu-latest
+    steps:
+        # Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          submodules: 'true'
+
+        # Install .NET
+      - name: Install .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.dotnetVersion }}
+
+        # Build Solution
+      - name: Build Solution
+        run: dotnet build src/MigrationTool.sln --configuration release
+      
+        # Run Automated Tests
+      - name: Run Unit Tests
+        run: dotnet test tests/MigrationTool.Tests/MigrationTool.Tests.csproj --logger "trx;LogFileName=test-results.trx"
+
+        # Provide Unit Test Results
+      - name: Report Unit Test Results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: .NET Unit Tests
+          path: tests/**/test-results.trx
+          reporter: dotnet-trx
