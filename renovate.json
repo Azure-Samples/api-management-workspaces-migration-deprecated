@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "major": false,
+  "separateMajorMinor": true,
+  "dependencyDashboard": false,
+  "detectHostRulesFromEnv": true,
+  "labels": ["dependencies"],
+  "ignoreDeps": [],
+  "printConfig": true,
+  "semanticCommits": "enabled",
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "enabledManagers": ["nuget"],
+  "extends": [
+    "config:base"
+  ]
+}
