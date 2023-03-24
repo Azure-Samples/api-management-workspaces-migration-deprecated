@@ -36,7 +36,7 @@ jobs:
 
         # Build Solution
       - name: Build Solution
-        run: dotnet build src/MigrationTool.sln --configuration release
+        run: dotnet build MigrationTool.sln --configuration release
       
         # Run Automated Tests
       - name: Run Unit Tests
