@@ -30,3 +30,16 @@ jobs:
         # Build Solution
       - name: Build Solution
         run: dotnet build src/MigrationTool.sln --configuration release
+      
+        # Run Automated Tests
+      - name: Run Unit Tests
+        run: dotnet test tests/MigrationTool.Tests/MigrationTool.Tests.csproj --logger "trx;LogFileName=test-results.trx"
+
+        # Provide Unit Test Results
+      - name: Report Unit Test Results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: .NET Unit Tests
+          path: src/**/test-results.trx
+          reporter: dotnet-trx

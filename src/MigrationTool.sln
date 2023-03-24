@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationTool.Migration.Dom
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmTemplates", "azure-api-management-devops-resource-kit\src\ArmTemplates\ArmTemplates.csproj", "{B5183465-2BC1-4206-9C9F-5AC9615AC941}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{69AD37BC-029F-4223-AA9D-A81799E8DBF8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigrationTool.Tests", "..\tests\MigrationTool.Tests\MigrationTool.Tests.csproj", "{B8DAAD1B-01E8-474B-B3F9-B723C3DFE4B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,11 +31,18 @@ Global
 		{B5183465-2BC1-4206-9C9F-5AC9615AC941}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5183465-2BC1-4206-9C9F-5AC9615AC941}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5183465-2BC1-4206-9C9F-5AC9615AC941}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8DAAD1B-01E8-474B-B3F9-B723C3DFE4B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8DAAD1B-01E8-474B-B3F9-B723C3DFE4B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8DAAD1B-01E8-474B-B3F9-B723C3DFE4B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8DAAD1B-01E8-474B-B3F9-B723C3DFE4B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0E4EC609-54B6-4C24-9CB9-6B3092A5B60C}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B8DAAD1B-01E8-474B-B3F9-B723C3DFE4B0} = {69AD37BC-029F-4223-AA9D-A81799E8DBF8}
 	EndGlobalSection
 EndGlobal
