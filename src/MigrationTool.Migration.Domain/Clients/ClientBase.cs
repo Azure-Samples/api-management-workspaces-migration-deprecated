@@ -1,14 +1,12 @@
 ﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Apis;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
+//using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.DataProcessors.Absctraction;
 using MigrationTool.Migration.Domain.Entities;
@@ -17,9 +15,12 @@ namespace MigrationTool.Migration.Domain.Clients;
 
 public class ClientBase : ApisClient
 {
+    const string GetVersionSetsRequest = "{0}{1}?api-version={2}";
+
     protected readonly IApiRevisionClient ApiRevisionClient;
     protected readonly ExtractorParameters ExtractorParameters;
     protected readonly IApiDataProcessor ApiDataProcessor;
+    //protected readonly IApiVersionSetClient ApiVersionSetClient;
     readonly HttpClient HttpClient;
 
     protected readonly JsonSerializerOptions DefaultSerializerOptions = new JsonSerializerOptions()
@@ -31,9 +32,11 @@ public class ClientBase : ApisClient
     public ClientBase(IHttpClientFactory httpClientFactory,
         ExtractorParameters extractorParameters,
         IApiDataProcessor apiDataProcessor,
+        //IApiVersionSetClient apiVersionSetClient,
         IApiRevisionClient apiRevisionClient)
         : base(httpClientFactory, apiDataProcessor)
     {
+        //this.ApiVersionSetClient = apiVersionSetClient;
         this.ExtractorParameters = extractorParameters;
         this.HttpClient = httpClientFactory.CreateClient();
         this.ApiRevisionClient = apiRevisionClient;
@@ -61,19 +64,41 @@ public class ClientBase : ApisClient
 
     protected async Task<IReadOnlyCollection<Entity>> RemoveUnsupportedApis(List<ApiTemplateResource> apis)
     {
-        apis = apis.FindAll(api => api.Properties.ApiVersionSetId == null); //remove apis with versions
-        List<ApiTemplateResource> apisWithoutRevisions = new List<ApiTemplateResource>();
-        foreach (var api in apis)
+        List<Entity> toReturn = new List<Entity>();
+        var versionedApis = apis
+            .FindAll(api => api.Properties.ApiVersionSetId != null)
+            .GroupBy(api => api.Properties.ApiVersionSetId).ToDictionary(
+            group => group.Key,
+            group => group.ToList()
+            );
+
+        foreach (var group in versionedApis)
         {
-            var apiRevisions =
-                await this.ApiRevisionClient.GetApiRevisionsAsync(api.OriginalName, this.ExtractorParameters);
-            if (apiRevisions.Count == 1)
-            {
-                apisWithoutRevisions.Add(api);
-            }
+            var versionSetId = group.Value.First().Properties.ApiVersionSetId;
+
+            var (azToken, azSubId) = await this.Auth.GetAccessToken();
+
+            string requestUrl = string.Format(GetVersionSetsRequest,
+               this.BaseUrl, versionSetId, GlobalConstants.ApiVersion);
+
+            var apiVersionSetTemplateResource = await this.GetResponseAsync<ApiVersionSetTemplateResource>(azToken, requestUrl);
+
+            var versionSet = new VersionSetEntity(apiVersionSetTemplateResource.Properties.DisplayName, apiVersionSetTemplateResource.Properties.DisplayName + $" (includes {group.Value.Count} versions)", apiVersionSetTemplateResource);
+
+            versionSet.Apis = group.Value.ConvertAll(api =>
+                new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api));
+
+
+            toReturn.Add(versionSet);
         }
 
-        return apisWithoutRevisions.ConvertAll(api =>
-            new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api));
+        toReturn.AddRange(
+            apis
+                .FindAll(api => api.Properties.ApiVersionSetId == null)
+                .ConvertAll(api => new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api))
+            );
+
+
+        return toReturn;
     }
 }
