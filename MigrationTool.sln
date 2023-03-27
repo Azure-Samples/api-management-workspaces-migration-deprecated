@@ -3,15 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationTool.Runtime", "MigrationTool.Runtime\MigrationTool.Runtime.csproj", "{AB41521B-3E04-41A7-B0E7-0FEC924A2702}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D890BD0B-16B3-4E84-B162-4A4B32B79581}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationTool.Migration.Domain", "MigrationTool.Migration.Domain\MigrationTool.Migration.Domain.csproj", "{DAE47D14-219B-454F-9ECB-0561003216BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationTool.Runtime", "src\MigrationTool.Runtime\MigrationTool.Runtime.csproj", "{AB41521B-3E04-41A7-B0E7-0FEC924A2702}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmTemplates", "azure-api-management-devops-resource-kit\src\ArmTemplates\ArmTemplates.csproj", "{B5183465-2BC1-4206-9C9F-5AC9615AC941}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationTool.Migration.Domain", "src\MigrationTool.Migration.Domain\MigrationTool.Migration.Domain.csproj", "{DAE47D14-219B-454F-9ECB-0561003216BF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmTemplates", "src\azure-api-management-devops-resource-kit\src\ArmTemplates\ArmTemplates.csproj", "{B5183465-2BC1-4206-9C9F-5AC9615AC941}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{69AD37BC-029F-4223-AA9D-A81799E8DBF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigrationTool.Tests", "..\tests\MigrationTool.Tests\MigrationTool.Tests.csproj", "{B8DAAD1B-01E8-474B-B3F9-B723C3DFE4B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigrationTool.Tests", "tests\MigrationTool.Tests\MigrationTool.Tests.csproj", "{B8DAAD1B-01E8-474B-B3F9-B723C3DFE4B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,5 +46,8 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B8DAAD1B-01E8-474B-B3F9-B723C3DFE4B0} = {69AD37BC-029F-4223-AA9D-A81799E8DBF8}
+		{B5183465-2BC1-4206-9C9F-5AC9615AC941} = {D890BD0B-16B3-4E84-B162-4A4B32B79581}
+		{DAE47D14-219B-454F-9ECB-0561003216BF} = {D890BD0B-16B3-4E84-B162-4A4B32B79581}
+		{AB41521B-3E04-41A7-B0E7-0FEC924A2702} = {D890BD0B-16B3-4E84-B162-4A4B32B79581}
 	EndGlobalSection
 EndGlobal
