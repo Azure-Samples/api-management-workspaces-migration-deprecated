@@ -22,18 +22,20 @@ public static class MigrationPlanner
 
     private static void AddMoveAndDeleteOperations(ICollection<Entity> sortedEntities, MigrationPlan plan)
     {
-        foreach (var entity in sortedEntities)
-        {
-            plan.AddRenameOperation(entity);
-        }
-
         foreach (var entity in sortedEntities.Reverse())
         {
             plan.AddDeleteOperation(entity);
         }
+
+        foreach (var entity in sortedEntities)
+        {
+            plan.AddRenameOperation(entity);
+        }
     }
 
-    private static void AddCopyAndConnectOperations(DependencyGraph graph, ICollection<Entity> sortedEntities, MigrationPlan plan)
+    private static void AddCopyAndConnectOperations(DependencyGraph graph,
+        ICollection<Entity> sortedEntities,
+        MigrationPlan plan)
     {
         foreach (var entity in sortedEntities)
         {
@@ -45,4 +47,3 @@ public static class MigrationPlanner
         }
     }
 }
-

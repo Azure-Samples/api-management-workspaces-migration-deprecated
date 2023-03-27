@@ -4,7 +4,7 @@ using MigrationTool.Migration.Domain.Operations;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
 
-public class ProductCopyOperationHandler : IOperationHandler
+public class ProductCopyOperationHandler : OperationHandler
 {
     private readonly ProductClient productClient;
     private readonly EntitiesRegistry registry;
@@ -15,12 +15,12 @@ public class ProductCopyOperationHandler : IOperationHandler
         this.registry = registry;
     }
 
-    public EntityType UsedEntities => EntityType.Product;
-    public Type OperationType => typeof(CopyOperation);
+    public override EntityType UsedEntities => EntityType.Product;
+    public override Type OperationType => typeof(CopyOperation);
 
-    public async Task Handle(IMigrationOperation operation, string workspaceId)
+    public override async Task Handle(IMigrationOperation operation, string workspaceId)
     {
-        if (operation is not CopyOperation { Entity.Type: EntityType.Product } copyOperation) throw new Exception();
+        var copyOperation = this.GetOperationOrThrow<CopyOperation>(operation);
 
         var originalProduct = copyOperation.Entity;
 

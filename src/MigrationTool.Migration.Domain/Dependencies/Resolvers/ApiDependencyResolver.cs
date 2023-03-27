@@ -5,12 +5,17 @@ namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
 public class ApiDependencyResolver : IEntityDependencyResolver
 {
-    private ApiClient apiClient;
-    private PolicyRelatedDependenciesResolver policyDependenciesResolver;
+    private readonly ApiClient apiClient;
+    private readonly SubscriptionClient subscriptionClient;
 
-    public ApiDependencyResolver(ApiClient apiClient, PolicyRelatedDependenciesResolver policyDependenciesResolver)
+    private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
+
+    public ApiDependencyResolver(ApiClient apiClient,
+        SubscriptionClient subscriptionClient,
+        PolicyRelatedDependenciesResolver policyDependenciesResolver)
     {
         this.apiClient = apiClient;
+        this.subscriptionClient = subscriptionClient;
         this.policyDependenciesResolver = policyDependenciesResolver;
     }
 
@@ -26,15 +31,19 @@ public class ApiDependencyResolver : IEntityDependencyResolver
         dependencies.UnionWith(await this.ResolveTags(entity));
         dependencies.UnionWith(await this.ResolveApiOperationsRelatedDependencies(entity));
         dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(entity));
+        dependencies.UnionWith(await this.ResolveSubscriptions(entity));
 
         return dependencies;
     }
 
-    Task<IReadOnlyCollection<Entity>> ResolveProducts(Entity entity)
-        => this.apiClient.FetchProducts(entity.Id);
+    Task<IReadOnlyCollection<Entity>> ResolveSubscriptions(Entity entity) =>
+        this.subscriptionClient.FetchForApi(entity.Id);
 
-    Task<IReadOnlyCollection<Entity>> ResolveTags(Entity entity)
-        => this.apiClient.FetchTags(entity.Id);
+    Task<IReadOnlyCollection<Entity>> ResolveProducts(Entity entity) =>
+        this.apiClient.FetchProducts(entity.Id);
+
+    Task<IReadOnlyCollection<Entity>> ResolveTags(Entity entity) =>
+        this.apiClient.FetchTags(entity.Id);
 
     async Task<IReadOnlyCollection<Entity>> ResolveApiOperationsRelatedDependencies(Entity entity)
     {
