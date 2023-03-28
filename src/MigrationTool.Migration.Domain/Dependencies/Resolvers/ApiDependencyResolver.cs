@@ -23,7 +23,7 @@ public class ApiDependencyResolver : IEntityDependencyResolver
 
     public async Task<IReadOnlyCollection<Entity>> ResolveDependencies(Entity entity)
     {
-        if (this.Type != entity.Type) throw new Exception();
+        if (this.Type != entity.Type && EntityType.Api != entity.Type) throw new Exception();
 
         var dependencies = new HashSet<Entity>();
 
@@ -32,6 +32,7 @@ public class ApiDependencyResolver : IEntityDependencyResolver
         dependencies.UnionWith(await this.ResolveApiOperationsRelatedDependencies(entity));
         dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(entity));
         dependencies.UnionWith(await this.ResolveSubscriptions(entity));
+        dependencies.UnionWith(await this.ResolveVersionSetDependencies(entity));
 
         return dependencies;
     }
@@ -68,4 +69,14 @@ public class ApiDependencyResolver : IEntityDependencyResolver
             return await this.policyDependenciesResolver.Resolve(policy);
         return new List<Entity>();
     }
+
+    async Task<IReadOnlyCollection<Entity>> ResolveVersionSetDependencies(Entity entity)
+    {
+        var versionSet = await this.apiClient.FetchVersionSet(entity);
+        if (versionSet != null)
+            return new List<Entity>() { versionSet };
+        else
+            return new List<Entity>();
+    }
+
 }

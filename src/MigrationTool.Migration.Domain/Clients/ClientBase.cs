@@ -1,14 +1,12 @@
 ﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Apis;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
+//using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.DataProcessors.Absctraction;
 using MigrationTool.Migration.Domain.Entities;
@@ -17,6 +15,8 @@ namespace MigrationTool.Migration.Domain.Clients;
 
 public class ClientBase : ApisClient
 {
+    const string GetVersionSetsRequest = "{0}{1}?api-version={2}";
+
     protected readonly IApiRevisionClient ApiRevisionClient;
     protected readonly ExtractorParameters ExtractorParameters;
     protected readonly IApiDataProcessor ApiDataProcessor;
@@ -59,21 +59,40 @@ public class ClientBase : ApisClient
     }
 
 
-    protected async Task<IReadOnlyCollection<Entity>> RemoveUnsupportedApis(List<ApiTemplateResource> apis)
+    protected async Task<IReadOnlyCollection<Entity>> ProcessApiData(List<ApiTemplateResource> apis)
     {
-        apis = apis.FindAll(api => api.Properties.ApiVersionSetId == null); //remove apis with versions
-        List<ApiTemplateResource> apisWithoutRevisions = new List<ApiTemplateResource>();
-        foreach (var api in apis)
+        List<Entity> processed = new List<Entity>();
+        var versionedApis = apis
+            .FindAll(api => api.Properties.ApiVersionSetId != null)
+            .GroupBy(api => api.Properties.ApiVersionSetId).ToDictionary(
+            group => group.Key,
+            group => group.ToList()
+            );
+
+        foreach (var group in versionedApis)
         {
-            var apiRevisions =
-                await this.ApiRevisionClient.GetApiRevisionsAsync(api.OriginalName, this.ExtractorParameters);
-            if (apiRevisions.Count == 1)
-            {
-                apisWithoutRevisions.Add(api);
-            }
+            var versionSetId = group.Value.First().Properties.ApiVersionSetId;
+            var (azToken, azSubId) = await this.Auth.GetAccessToken();
+
+            string requestUrl = string.Format(GetVersionSetsRequest,
+               this.BaseUrl, versionSetId, GlobalConstants.ApiVersion);
+
+            var apiVersionSetTemplateResource = await this.GetResponseAsync<ApiVersionSetTemplateResource>(azToken, requestUrl);
+            var versionSet = new VersionSetEntity(versionSetId, apiVersionSetTemplateResource.Properties.DisplayName, apiVersionSetTemplateResource);
+
+            versionSet.Apis = group.Value.ConvertAll(api =>
+                new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api));
+
+            processed.Add(versionSet);
         }
 
-        return apisWithoutRevisions.ConvertAll(api =>
-            new Entity(api.OriginalName, EntityType.Api, api.Properties.DisplayName, api));
+        processed.AddRange(
+            apis
+                .FindAll(api => api.Properties.ApiVersionSetId == null)
+                .ConvertAll(api => new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api))
+            );
+
+
+        return processed;
     }
 }

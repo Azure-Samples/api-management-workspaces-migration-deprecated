@@ -55,8 +55,22 @@ public class Program
     private static async Task<IEnumerable<Entity>> ChooseApis()
     {
         var apisClient = ServiceProvider.GetRequiredService<ApiClient>();
-        var apis = await apisClient.FetchAllApis();
-        return Prompt.MultiSelect("Select apis to migrate", apis);
+        var apis = await apisClient.FetchAllApisAndVersionSets();
+        var selected = Prompt.MultiSelect("Select apis to migrate", apis);
+
+        HashSet<Entity> versionedApis = new HashSet<Entity>();
+        selected.Where(item => item.Type == EntityType.VersionSet).ToList().ForEach(versionSet =>
+        {
+            versionedApis.UnionWith(((VersionSetEntity)versionSet).Apis);
+        });
+
+        //selected
+        //selected.Append(versionedApis);
+        List<Entity> allApis = new List<Entity>(); 
+        allApis.AddRange(selected.Where(item => item.Type == EntityType.Api));
+        allApis.AddRange(versionedApis);
+        return allApis;
+        //return selected;
     }
     
     private static async Task<string?> ChooseWorkspace()
@@ -89,12 +103,14 @@ public class Program
         collection.AddSingleton<DependencyService, DependencyService>();
         collection.AddSingleton<IEntityDependencyResolver, ApiDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver, ProductDependencyResolver>();
+        collection.AddSingleton<IEntityDependencyResolver, ApiVersionSetDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Group));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.ApiOperation));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Tag));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.PolicyFragment));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.NamedValue));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Subscription));
+        //collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.VersionSet));
         collection.AddSingleton<DependencyGraphBuilder, DependencyGraphBuilder>();
         collection.AddSingleton<EntitiesRegistry, EntitiesRegistry>();
         collection.AddSingleton<MigrationPlanExecutor, MigrationPlanExecutor>();
