@@ -12,7 +12,7 @@ using MigrationTool.Migration.Domain.Executor;
 using MigrationTool.Migration.Domain.Executor.Operations;
 using MigrationTool.Migration.Domain.Planner;
 using Sharprompt;
-using System;
+using MigrationTool.Migration.Domain.Operations;
 
 public class Program
 {
@@ -83,6 +83,7 @@ public class Program
         collection.AddSingleton<PolicyFragmentsClient, PolicyFragmentsClient>();
         collection.AddSingleton<ProductClient, ProductClient>();
         collection.AddSingleton<WorkspaceClient, WorkspaceClient>();
+        collection.AddSingleton<SubscriptionClient, SubscriptionClient>();
 
         collection.AddSingleton<PolicyRelatedDependenciesResolver, PolicyRelatedDependenciesResolver>();
         collection.AddSingleton<DependencyService, DependencyService>();
@@ -97,9 +98,12 @@ public class Program
         collection.AddSingleton<DependencyGraphBuilder, DependencyGraphBuilder>();
         collection.AddSingleton<EntitiesRegistry, EntitiesRegistry>();
         collection.AddSingleton<MigrationPlanExecutor, MigrationPlanExecutor>();
-        collection.AddSingleton<IOperationHandler, ApiCopyOperationHandler>();
-        collection.AddSingleton<IOperationHandler, ProductCopyOperationHandler>();
-        collection.AddSingleton<IOperationHandler, ProductApiConnectionHandler>();
+        collection.AddSingleton<OperationHandler, ApiCopyOperationHandler>();
+        collection.AddSingleton<OperationHandler, ProductCopyOperationHandler>();
+        collection.AddSingleton<OperationHandler, ProductApiConnectionHandler>();
+        collection.AddSingleton<OperationHandler, SubscriptionCopyHandler>();
+        collection.AddSingleton<OperationHandler>(_ => new EmptyHandler(EntityType.Api | EntityType.Subscription, typeof(ConnectOperation)));
+        collection.AddSingleton<OperationHandler>(_ => new EmptyHandler(EntityType.Product | EntityType.Subscription, typeof(ConnectOperation)));
         
         return collection.BuildServiceProvider();
     }

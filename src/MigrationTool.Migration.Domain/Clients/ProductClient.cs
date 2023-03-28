@@ -92,7 +92,7 @@ namespace MigrationTool.Migration.Domain.Clients
                 JsonContent.Create<ProductApiTemplateResource>(productTemplate, options: DefaultSerializerOptions);
             var response = await this.CallApiManagementAsync(azToken, request);
             var armTemplate = response.Deserialize<ProductApiTemplateResource>();
-            return new Entity(armTemplate.Name, armTemplate.Properties.DisplayName, EntityType.Product, armTemplate);
+            return new Entity(armTemplate.Name, EntityType.Product, armTemplate.Properties.DisplayName, armTemplate);
         }
 
         public Task<IReadOnlyCollection<Entity>> FetchTags(string entityId)
@@ -102,12 +102,6 @@ namespace MigrationTool.Migration.Domain.Clients
         }
 
         public Task<IReadOnlyCollection<Entity>> FetchGroups(string entityId)
-        {
-            // TODO: Implement
-            return Task.FromResult<IReadOnlyCollection<Entity>>(new List<Entity>());
-        }
-
-        public Task<IReadOnlyCollection<Entity>> FetchSubscriptions(string entityId)
         {
             // TODO: Implement
             return Task.FromResult<IReadOnlyCollection<Entity>>(new List<Entity>());

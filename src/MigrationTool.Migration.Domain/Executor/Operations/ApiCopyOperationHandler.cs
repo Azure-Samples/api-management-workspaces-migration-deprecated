@@ -4,7 +4,7 @@ using MigrationTool.Migration.Domain.Operations;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
 
-public class ApiCopyOperationHandler : IOperationHandler
+public class ApiCopyOperationHandler : OperationHandler
 {
     private readonly ApiClient apiClient;
     private readonly EntitiesRegistry registry;
@@ -15,12 +15,12 @@ public class ApiCopyOperationHandler : IOperationHandler
         this.registry = registry;
     }
 
-    public EntityType UsedEntities => EntityType.Api;
-    public Type OperationType => typeof(CopyOperation);
+    public override EntityType UsedEntities => EntityType.Api;
+    public override Type OperationType => typeof(CopyOperation);
 
-    public async Task Handle(IMigrationOperation operation, string workspaceId)
+    public override async Task Handle(IMigrationOperation operation, string workspaceId)
     {
-        if (operation is not CopyOperation { Entity.Type: EntityType.Api } copyOperation) throw new Exception();
+        var copyOperation = this.GetOperationOrThrow<CopyOperation>(operation);
 
         var originalApi = copyOperation.Entity;
         var newApi = await this.apiClient.Create(originalApi, IdModifier, workspaceId);

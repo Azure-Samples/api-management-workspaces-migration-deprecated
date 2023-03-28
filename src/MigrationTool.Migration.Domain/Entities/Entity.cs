@@ -2,8 +2,18 @@
 
 namespace MigrationTool.Migration.Domain.Entities;
 
-public record Entity(string Id, string DisplayName, EntityType Type, TemplateResource ArmTemplate)
+public record Entity(string Id, EntityType Type)
 {
+    public string DisplayName { get; }
+    public TemplateResource ArmTemplate { get; }
+    
+    public Entity(string id, EntityType type, string displayName, TemplateResource armTemplate) 
+        : this(id, type)
+    {
+        this.DisplayName = displayName;
+        this.ArmTemplate = armTemplate;
+    }
+    
     public override string ToString() 
         => $"{this.Type}: {this.DisplayName}";
 
@@ -16,4 +26,4 @@ public record Entity(string Id, string DisplayName, EntityType Type, TemplateRes
         if (ReferenceEquals(this, other)) return true;
         return this.Id == other.Id && this.Type == other.Type;
     }
-};
+}

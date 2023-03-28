@@ -61,14 +61,14 @@ public class ApiClient : ClientBase
     public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)
     {
         var revisions = await this.ApiRevisionClient.GetApiRevisionsAsync(apiId, this.ExtractorParameters);
-        return revisions.ConvertAll(api => new Entity(api.ApiId, api.ApiRevision, EntityType.Api, null));
+        return revisions.ConvertAll(api => new Entity(api.ApiId, EntityType.Api, api.ApiRevision, null));
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchProducts(string entityId)
     {
         var products = await this.ProductsClient.GetAllLinkedToApiAsync(entityId, this.ExtractorParameters);
         return products.ConvertAll(product =>
-            new Entity(product.Name, product.Properties.DisplayName, EntityType.Product, product));
+            new Entity(product.Name, EntityType.Product, product.Properties.DisplayName, product));
     }
 
     public async Task<string?> FetchPolicy(string entityId)
@@ -87,8 +87,8 @@ public class ApiClient : ClientBase
     {
         var operations =
             await this.ApiOperationClient.GetOperationsLinkedToApiAsync(entityId, this.ExtractorParameters);
-        return operations.ConvertAll(operation => new Entity(operation.Name,
-            operation.Properties.DisplayName, EntityType.ApiOperation, operation));
+        return operations.ConvertAll(operation =>
+            new Entity(operation.Name, EntityType.ApiOperation, operation.Properties.DisplayName, operation));
     }
 
     public async Task<string?> FetchOperationPolicy(string entityId, string operationId)
@@ -135,7 +135,7 @@ public class ApiClient : ClientBase
         request.Content = JsonContent.Create<ApiTemplateResource>(apiTemplate, options: DefaultSerializerOptions);
         var response = await this.CallApiManagementAsync(azToken, request);
         var armTemplate = response.Deserialize<ApiTemplateResource>();
-        return new Entity(armTemplate.Name, armTemplate.Properties.DisplayName, EntityType.Api, armTemplate);
+        return new Entity(armTemplate.Name, EntityType.Api, armTemplate.Properties.DisplayName, armTemplate);
     }
 
     public async Task<Entity> CreateOperation(Entity sourceEntity, Entity api, string workspace)
@@ -154,7 +154,7 @@ public class ApiClient : ClientBase
                 options: DefaultSerializerOptions);
         var response = await this.CallApiManagementAsync(azToken, request);
         var armTemplate = response.Deserialize<ApiOperationTemplateResource>();
-        return new Entity(armTemplate.Name, armTemplate.Properties.DisplayName, EntityType.ApiOperation, armTemplate);
+        return new Entity(armTemplate.Name, EntityType.ApiOperation, armTemplate.Properties.DisplayName, armTemplate);
     }
 
     public async Task UploadApiPolicy(Entity api, string policy, string workspace)

@@ -6,6 +6,11 @@ namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
 public class PolicyRelatedDependenciesResolver
 {
+    private static readonly Regex IncludeFragmentFinder =
+        new Regex("<include-fragment\\s*fragment-id=\"([^\"]*)\"\\s*/>");
+
+    private static readonly Regex NamedValueFinder = new Regex("{{([^{}]*)}}");
+
     private readonly NamedValuesClient namedValuesClient;
     private readonly PolicyFragmentsClient policyFragmentsClient;
 
@@ -32,12 +37,8 @@ public class PolicyRelatedDependenciesResolver
             : Task.FromResult<IReadOnlyCollection<Entity>>(new List<Entity>());
     }
 
-    private IReadOnlyCollection<string> ExtractPolicyFragmentNames(string policy)
-    {
-        var includeFragmentFinder = new Regex("<include-fragment\\s*fragment-id=\"([^\"]*)\"\\s*/>");
-        var matchCollection = includeFragmentFinder.Matches(policy);
-        return matchCollection.Select(_ => _.Groups[1].Value).ToHashSet();
-    }
+    private IReadOnlyCollection<string> ExtractPolicyFragmentNames(string policy) =>
+        IncludeFragmentFinder.Matches(policy).Select(_ => _.Groups[1].Value).ToHashSet();
 
     private Task<IReadOnlyCollection<Entity>> ResolveNamedValues(string policy)
     {
@@ -47,10 +48,6 @@ public class PolicyRelatedDependenciesResolver
             : Task.FromResult<IReadOnlyCollection<Entity>>(new List<Entity>());
     }
 
-    private IReadOnlyCollection<string> ExtractNamedValuesNames(string policy)
-    {
-        var namedValueFinder = new Regex("{{([^{}]*)}}");
-        var matchCollection = namedValueFinder.Matches(policy);
-        return matchCollection.Select(_ => _.Groups[1].Value).ToHashSet();
-    }
+    private IReadOnlyCollection<string> ExtractNamedValuesNames(string policy) =>
+        NamedValueFinder.Matches(policy).Select(_ => _.Groups[1].Value).ToHashSet();
 }

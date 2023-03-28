@@ -4,7 +4,7 @@ using MigrationTool.Migration.Domain.Operations;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
 
-public class ProductApiConnectionHandler : IOperationHandler
+public class ProductApiConnectionHandler : OperationHandler
 {
     private readonly ProductClient productClient;
     private readonly EntitiesRegistry registry;
@@ -15,16 +15,12 @@ public class ProductApiConnectionHandler : IOperationHandler
         this.registry = registry;
     }
 
-    public EntityType UsedEntities => EntityType.Product | EntityType.Api;
-    public Type OperationType => typeof(ConnectOperation);
+    public override EntityType UsedEntities => EntityType.Product | EntityType.Api;
+    public override Type OperationType => typeof(ConnectOperation);
 
-    public Task Handle(IMigrationOperation operation, string workspaceId)
+    public override Task Handle(IMigrationOperation operation, string workspaceId)
     {
-        if (operation is not ConnectOperation connectOperation)
-            throw new Exception();
-
-        if ((connectOperation.Entity.Type | connectOperation.ConnectToEntity.Type) != this.UsedEntities)
-            throw new Exception();
+        var connectOperation = this.GetOperationOrThrow<ConnectOperation>(operation);
 
         var product = this.GetProduct(connectOperation);
         var api = this.GetApi(connectOperation);

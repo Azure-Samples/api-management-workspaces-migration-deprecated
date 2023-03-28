@@ -74,6 +74,6 @@ public class ClientBase : ApisClient
         }
 
         return apisWithoutRevisions.ConvertAll(api =>
-            new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api));
+            new Entity(api.OriginalName, EntityType.Api, api.Properties.DisplayName, api));
     }
 }

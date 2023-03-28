@@ -5,12 +5,12 @@ namespace MigrationTool.Migration.Domain.Executor;
 
 public class MigrationPlanExecutor
 {
-    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<EntityType, IOperationHandler>> handlers;
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<EntityType, OperationHandler>> handlers;
 
-    public MigrationPlanExecutor(IEnumerable<IOperationHandler> handlers)
+    public MigrationPlanExecutor(IEnumerable<OperationHandler> handlers)
     {
         this.handlers = handlers.GroupBy(_ => _.OperationType)
-            .ToDictionary<IGrouping<Type, IOperationHandler>, Type, IReadOnlyDictionary<EntityType, IOperationHandler>>(
+            .ToDictionary<IGrouping<Type, OperationHandler>, Type, IReadOnlyDictionary<EntityType, OperationHandler>>(
                 _ => _.Key, _ => _.ToDictionary(__ => __.UsedEntities));
     }
 

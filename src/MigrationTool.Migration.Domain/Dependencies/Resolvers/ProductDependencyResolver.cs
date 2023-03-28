@@ -6,12 +6,16 @@ namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 public class ProductDependencyResolver : IEntityDependencyResolver
 {
     private readonly ProductClient productClient;
+    private readonly SubscriptionClient subscriptionClient;
+
     private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
 
     public ProductDependencyResolver(ProductClient productClient,
+        SubscriptionClient subscriptionClient,
         PolicyRelatedDependenciesResolver policyDependenciesResolver)
     {
         this.productClient = productClient;
+        this.subscriptionClient = subscriptionClient;
         this.policyDependenciesResolver = policyDependenciesResolver;
     }
 
@@ -43,7 +47,7 @@ public class ProductDependencyResolver : IEntityDependencyResolver
         => this.productClient.FetchGroups(entity.Id);
 
     private Task<IReadOnlyCollection<Entity>> ResolveSubscriptions(Entity entity)
-        => this.productClient.FetchSubscriptions(entity.Id);
+        => this.subscriptionClient.FetchForProduct(entity.Id);
 
     private async Task<IReadOnlyCollection<Entity>> ResolvePolicyRelatedDependencies(Entity entity)
     {
