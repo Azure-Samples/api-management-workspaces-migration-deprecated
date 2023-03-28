@@ -7,6 +7,7 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.
 using MigrationTool.Migration.Domain.Entities;
 using System.Net.Http.Json;
 using MigrationTool.Migration.Domain.Extensions;
+using MigrationTool.Migration.Domain.Executor.Operations;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
@@ -31,6 +32,7 @@ public class ApiClient : ClientBase
     private readonly IProductsClient ProductsClient;
     private readonly IApiOperationClient ApiOperationClient;
     private readonly IPolicyClient PolicyClient;
+    private readonly EntitiesRegistry Registry;
 
     public ApiClient(
         ExtractorParameters extractorParameters,
@@ -39,13 +41,16 @@ public class ApiClient : ClientBase
         IApiRevisionClient apiRevisionClient,
         IPolicyClient policyClient,
         IHttpClientFactory httpClientFactory,
-        IApiDataProcessor apiDataProcessor)
+        IApiDataProcessor apiDataProcessor,
+        EntitiesRegistry registry
+        )
         : base(httpClientFactory, extractorParameters, apiDataProcessor, apiRevisionClient)
     {
         this.ApisClient = apisClient;
         this.ProductsClient = productsClient;
         this.ApiOperationClient = apiOperationClient;
         this.PolicyClient = policyClient;
+        this.Registry = registry;
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchAllApisAndVersionSets()
@@ -128,6 +133,10 @@ public class ApiClient : ClientBase
         apiTemplate.Name = null;
         apiTemplate.Properties.DisplayName = modifier(apiTemplate.Properties.DisplayName);
         apiTemplate.Properties.Path = modifier(apiTemplate.Properties.Path);
+        Entity newVersionSet;
+        Entity originalVersionSet = new VersionSetEntity(apiTemplate.Properties.ApiVersionSetId);
+        this.Registry.TryGetMapping(originalVersionSet, out newVersionSet);
+        apiTemplate.Properties.ApiVersionSetId = newVersionSet.Id;
 
         request.Content = JsonContent.Create<ApiTemplateResource>(apiTemplate, options: DefaultSerializerOptions);
         var response = await this.CallApiManagementAsync(azToken, request);

@@ -111,7 +111,6 @@ public class Program
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.PolicyFragment));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.NamedValue));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Subscription));
-        //collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.VersionSet));
         collection.AddSingleton<DependencyGraphBuilder, DependencyGraphBuilder>();
         collection.AddSingleton<EntitiesRegistry, EntitiesRegistry>();
         collection.AddSingleton<MigrationPlanExecutor, MigrationPlanExecutor>();
@@ -119,9 +118,11 @@ public class Program
         collection.AddSingleton<OperationHandler, ProductCopyOperationHandler>();
         collection.AddSingleton<OperationHandler, ProductApiConnectionHandler>();
         collection.AddSingleton<OperationHandler, SubscriptionCopyHandler>();
+        collection.AddSingleton<OperationHandler, VersionSetCopyOperationHandler>();
         collection.AddSingleton<OperationHandler>(_ => new EmptyHandler(EntityType.Api | EntityType.Subscription, typeof(ConnectOperation)));
         collection.AddSingleton<OperationHandler>(_ => new EmptyHandler(EntityType.Product | EntityType.Subscription, typeof(ConnectOperation)));
-        
+        collection.AddSingleton<OperationHandler>(_ => new EmptyHandler(EntityType.Product | EntityType.VersionSet, typeof(ConnectOperation)));
+
         return collection.BuildServiceProvider();
     }
 }
