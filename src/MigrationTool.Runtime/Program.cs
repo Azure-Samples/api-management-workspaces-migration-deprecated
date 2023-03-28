@@ -37,6 +37,7 @@ public class Program
             Console.WriteLine($"No workspaces");
             return;
         }
+
         var dependencyGraphBuilder = ServiceProvider.GetRequiredService<DependencyGraphBuilder>();
         Console.WriteLine("Fetching dependencies...");
         var graph = await dependencyGraphBuilder.Build(apis);
@@ -58,7 +59,7 @@ public class Program
         var apis = await apisClient.FetchAllApis();
         return Prompt.MultiSelect("Select apis to migrate", apis);
     }
-    
+
     private static async Task<string?> ChooseWorkspace()
     {
         var workspaceService = ServiceProvider.GetRequiredService<WorkspaceClient>();
@@ -89,22 +90,32 @@ public class Program
         collection.AddSingleton<DependencyService, DependencyService>();
         collection.AddSingleton<IEntityDependencyResolver, ApiDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver, ProductDependencyResolver>();
+        collection.AddSingleton<IEntityDependencyResolver, NamedValueDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Group));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.ApiOperation));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Tag));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.PolicyFragment));
-        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.NamedValue));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Subscription));
+
         collection.AddSingleton<DependencyGraphBuilder, DependencyGraphBuilder>();
         collection.AddSingleton<EntitiesRegistry, EntitiesRegistry>();
+        collection.AddSingleton<PolicyModifier, PolicyModifier>();
         collection.AddSingleton<MigrationPlanExecutor, MigrationPlanExecutor>();
         collection.AddSingleton<OperationHandler, ApiCopyOperationHandler>();
         collection.AddSingleton<OperationHandler, ProductCopyOperationHandler>();
         collection.AddSingleton<OperationHandler, ProductApiConnectionHandler>();
         collection.AddSingleton<OperationHandler, SubscriptionCopyHandler>();
-        collection.AddSingleton<OperationHandler>(_ => new EmptyHandler(EntityType.Api | EntityType.Subscription, typeof(ConnectOperation)));
-        collection.AddSingleton<OperationHandler>(_ => new EmptyHandler(EntityType.Product | EntityType.Subscription, typeof(ConnectOperation)));
-        
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.Api | EntityType.Subscription, typeof(ConnectOperation)));
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.Product | EntityType.Subscription, typeof(ConnectOperation)));
+
+        collection.AddSingleton<OperationHandler, NamedValueCopyHandler>();
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.Api | EntityType.NamedValue, typeof(ConnectOperation)));
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.Product | EntityType.NamedValue, typeof(ConnectOperation)));
+
         return collection.BuildServiceProvider();
     }
 }

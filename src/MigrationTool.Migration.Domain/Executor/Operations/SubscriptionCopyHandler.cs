@@ -3,6 +3,7 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.TemplateModels;
 using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Entities;
+using MigrationTool.Migration.Domain.Extensions;
 using MigrationTool.Migration.Domain.Operations;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
@@ -29,13 +30,18 @@ public class SubscriptionCopyHandler : OperationHandler
 
         if (copyOperation.Entity.ArmTemplate is not SubscriptionsTemplateResource resource) throw new Exception();
 
-        var copy = resource.Serialize().Deserialize<SubscriptionsTemplateResource>();
+        var copy = this.ModifyTemplate(workspaceId, resource);
+
+        return this.subscriptionClient.Create(copy, workspaceId);
+    }
+
+    SubscriptionsTemplateResource ModifyTemplate(string workspaceId, SubscriptionsTemplateResource resource)
+    {
+        var copy = resource.Copy();
         copy.Name = $"{copy.Name}-in-{workspaceId}";
         copy.Properties.scope = this.ModifyScope(copy.Properties.scope, workspaceId);
-        copy.Type = null;
         var entity = new Entity(copy.Name, EntityType.Subscription, copy.Properties.displayName, copy);
-        
-        return this.subscriptionClient.Create(entity, workspaceId);
+        return copy;
     }
 
     private string ModifyScope(string scope, string workspaceId)
