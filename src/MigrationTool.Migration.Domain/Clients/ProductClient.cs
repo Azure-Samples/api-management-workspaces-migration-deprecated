@@ -53,7 +53,7 @@ namespace MigrationTool.Migration.Domain.Clients
             this.ApiDataProcessor.ProcessData(apis);
 
 
-            return await this.RemoveUnsupportedApis(apis);
+            return await this.ProcessApiData(apis);
         }
 
         public async Task<string?> FetchPolicy(string entityId)

@@ -20,7 +20,6 @@ public class ClientBase : ApisClient
     protected readonly IApiRevisionClient ApiRevisionClient;
     protected readonly ExtractorParameters ExtractorParameters;
     protected readonly IApiDataProcessor ApiDataProcessor;
-    //protected readonly IApiVersionSetClient ApiVersionSetClient;
     readonly HttpClient HttpClient;
 
     protected readonly JsonSerializerOptions DefaultSerializerOptions = new JsonSerializerOptions()
@@ -32,11 +31,9 @@ public class ClientBase : ApisClient
     public ClientBase(IHttpClientFactory httpClientFactory,
         ExtractorParameters extractorParameters,
         IApiDataProcessor apiDataProcessor,
-        //IApiVersionSetClient apiVersionSetClient,
         IApiRevisionClient apiRevisionClient)
         : base(httpClientFactory, apiDataProcessor)
     {
-        //this.ApiVersionSetClient = apiVersionSetClient;
         this.ExtractorParameters = extractorParameters;
         this.HttpClient = httpClientFactory.CreateClient();
         this.ApiRevisionClient = apiRevisionClient;
@@ -62,9 +59,9 @@ public class ClientBase : ApisClient
     }
 
 
-    protected async Task<IReadOnlyCollection<Entity>> RemoveUnsupportedApis(List<ApiTemplateResource> apis)
+    protected async Task<IReadOnlyCollection<Entity>> ProcessApiData(List<ApiTemplateResource> apis)
     {
-        List<Entity> toReturn = new List<Entity>();
+        List<Entity> processed = new List<Entity>();
         var versionedApis = apis
             .FindAll(api => api.Properties.ApiVersionSetId != null)
             .GroupBy(api => api.Properties.ApiVersionSetId).ToDictionary(
@@ -75,30 +72,27 @@ public class ClientBase : ApisClient
         foreach (var group in versionedApis)
         {
             var versionSetId = group.Value.First().Properties.ApiVersionSetId;
-
             var (azToken, azSubId) = await this.Auth.GetAccessToken();
 
             string requestUrl = string.Format(GetVersionSetsRequest,
                this.BaseUrl, versionSetId, GlobalConstants.ApiVersion);
 
             var apiVersionSetTemplateResource = await this.GetResponseAsync<ApiVersionSetTemplateResource>(azToken, requestUrl);
-
-            var versionSet = new VersionSetEntity(apiVersionSetTemplateResource.Properties.DisplayName, apiVersionSetTemplateResource.Properties.DisplayName + $" (includes {group.Value.Count} versions)", apiVersionSetTemplateResource);
+            var versionSet = new VersionSetEntity(versionSetId, apiVersionSetTemplateResource.Properties.DisplayName, apiVersionSetTemplateResource);
 
             versionSet.Apis = group.Value.ConvertAll(api =>
                 new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api));
 
-
-            toReturn.Add(versionSet);
+            processed.Add(versionSet);
         }
 
-        toReturn.AddRange(
+        processed.AddRange(
             apis
                 .FindAll(api => api.Properties.ApiVersionSetId == null)
                 .ConvertAll(api => new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api))
             );
 
 
-        return toReturn;
+        return processed;
     }
 }

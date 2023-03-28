@@ -51,11 +51,11 @@ public class ApiClient : ClientBase
         this.ApiVersionSetClient = apiVersionSetClient;
     }
 
-    public async Task<IReadOnlyCollection<Entity>> FetchAllApis()
+    public async Task<IReadOnlyCollection<Entity>> FetchAllApisAndVersionSets()
     {
         var apis = await this.ApisClient.GetAllCurrentAsync(this.ExtractorParameters);
 
-        return await this.RemoveUnsupportedApis(apis);
+        return await this.ProcessApiData(apis);
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)
@@ -196,5 +196,11 @@ public class ApiClient : ClientBase
             api.Id, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
         await this.CallApiManagementAsync(azToken, request);
+    }
+
+    public async Task<Entity?> FetchVersionSet(Entity api)
+    {
+        var apis = await this.FetchAllApisAndVersionSets();
+        return apis.Where(api => api.Type == EntityType.VersionSet).Where(versionSet => versionSet.Id == ((ApiTemplateResource)api.ArmTemplate).Properties.ApiVersionSetId).FirstOrDefault();
     }
 }
