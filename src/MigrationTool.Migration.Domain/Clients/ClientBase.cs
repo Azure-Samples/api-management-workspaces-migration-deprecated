@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Apis;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Abstractions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 //using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
@@ -81,7 +82,7 @@ public class ClientBase : ApisClient
             var versionSet = new VersionSetEntity(versionSetId, apiVersionSetTemplateResource.Properties.DisplayName, apiVersionSetTemplateResource);
 
             versionSet.Apis = group.Value.ConvertAll(api =>
-                new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api));
+                new Entity(api.OriginalName, EntityType.Api, api.Properties.DisplayName, api));
 
             processed.Add(versionSet);
         }
@@ -89,7 +90,7 @@ public class ClientBase : ApisClient
         processed.AddRange(
             apis
                 .FindAll(api => api.Properties.ApiVersionSetId == null)
-                .ConvertAll(api => new Entity(api.OriginalName, api.Properties.DisplayName, EntityType.Api, api))
+                .ConvertAll(api => new Entity(api.OriginalName, EntityType.Api, api.Properties.DisplayName, api))
             );
 
 
