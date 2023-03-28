@@ -46,7 +46,7 @@ public class NamedValuesClient : ClientBase
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
 
 
-        request.Headers.Authorization = new AuthenticationHeaderValue("LocalDebug", azToken);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", azToken);
         HttpResponseMessage response = await this.HttpClient.SendAsync(request);
 
         if (response.StatusCode == HttpStatusCode.BadRequest)

@@ -29,7 +29,7 @@ public class ClientBase : ApiClientBase
 
     protected async Task<string> CallApiManagementAsync(String azToken, HttpRequestMessage request)
     {
-        request.Headers.Authorization = new AuthenticationHeaderValue("LocalDebug", azToken);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", azToken);
         HttpResponseMessage response = await this.HttpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
