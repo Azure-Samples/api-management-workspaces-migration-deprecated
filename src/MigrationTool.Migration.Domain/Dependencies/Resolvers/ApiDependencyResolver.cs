@@ -7,16 +7,19 @@ public class ApiDependencyResolver : IEntityDependencyResolver
 {
     private readonly ApiClient apiClient;
     private readonly SubscriptionClient subscriptionClient;
+    private readonly VersionSetClient versionSetClient;
 
     private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
 
     public ApiDependencyResolver(ApiClient apiClient,
         SubscriptionClient subscriptionClient,
-        PolicyRelatedDependenciesResolver policyDependenciesResolver)
+        PolicyRelatedDependenciesResolver policyDependenciesResolver,
+        VersionSetClient versionSetClient)
     {
         this.apiClient = apiClient;
         this.subscriptionClient = subscriptionClient;
         this.policyDependenciesResolver = policyDependenciesResolver;
+        this.versionSetClient = versionSetClient;
     }
 
     public EntityType Type => EntityType.Api;
@@ -72,7 +75,7 @@ public class ApiDependencyResolver : IEntityDependencyResolver
 
     async Task<IReadOnlyCollection<Entity>> ResolveVersionSetDependencies(Entity entity)
     {
-        var versionSet = await this.apiClient.FetchVersionSet(entity);
+        var versionSet = await this.versionSetClient.FetchVersionSet(entity);
         if (versionSet != null)
             return new List<Entity>() { versionSet };
         else

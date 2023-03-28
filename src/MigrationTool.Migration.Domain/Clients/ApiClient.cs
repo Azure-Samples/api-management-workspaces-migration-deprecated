@@ -31,14 +31,12 @@ public class ApiClient : ClientBase
     private readonly IProductsClient ProductsClient;
     private readonly IApiOperationClient ApiOperationClient;
     private readonly IPolicyClient PolicyClient;
-    private readonly IApiVersionSetClient ApiVersionSetClient;
 
     public ApiClient(
         ExtractorParameters extractorParameters,
         IApisClient apisClient, IProductsClient productsClient,
         IApiOperationClient apiOperationClient,
         IApiRevisionClient apiRevisionClient,
-        IApiVersionSetClient apiVersionSetClient,
         IPolicyClient policyClient,
         IHttpClientFactory httpClientFactory,
         IApiDataProcessor apiDataProcessor)
@@ -48,7 +46,6 @@ public class ApiClient : ClientBase
         this.ProductsClient = productsClient;
         this.ApiOperationClient = apiOperationClient;
         this.PolicyClient = policyClient;
-        this.ApiVersionSetClient = apiVersionSetClient;
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchAllApisAndVersionSets()
@@ -196,11 +193,5 @@ public class ApiClient : ClientBase
             api.Id, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
         await this.CallApiManagementAsync(azToken, request);
-    }
-
-    public async Task<Entity?> FetchVersionSet(Entity api)
-    {
-        var apis = await this.FetchAllApisAndVersionSets();
-        return apis.Where(api => api.Type == EntityType.VersionSet).Where(versionSet => versionSet.Id == ((ApiTemplateResource)api.ArmTemplate).Properties.ApiVersionSetId).FirstOrDefault();
     }
 }

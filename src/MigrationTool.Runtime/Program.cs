@@ -98,6 +98,7 @@ public class Program
         collection.AddSingleton<ProductClient, ProductClient>();
         collection.AddSingleton<WorkspaceClient, WorkspaceClient>();
         collection.AddSingleton<SubscriptionClient, SubscriptionClient>();
+        collection.AddSingleton<VersionSetClient, VersionSetClient>();
 
         collection.AddSingleton<PolicyRelatedDependenciesResolver, PolicyRelatedDependenciesResolver>();
         collection.AddSingleton<DependencyService, DependencyService>();
