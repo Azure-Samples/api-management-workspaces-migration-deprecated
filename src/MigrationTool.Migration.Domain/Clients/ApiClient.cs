@@ -1,11 +1,10 @@
-﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
+﻿using System.Net.Http.Json;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiOperations;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.DataProcessors.Absctraction;
 using MigrationTool.Migration.Domain.Entities;
-using System.Net.Http.Json;
 using MigrationTool.Migration.Domain.Extensions;
 
 namespace MigrationTool.Migration.Domain.Clients;
@@ -32,30 +31,31 @@ public class ApiClient : ClientBase
     private readonly IApiOperationClient ApiOperationClient;
     private readonly IPolicyClient PolicyClient;
     private readonly IApiVersionSetClient ApiVersionSetClient;
+    private readonly IApiRevisionClient ApiRevisionClient;
 
     public ApiClient(
         ExtractorParameters extractorParameters,
         IApisClient apisClient, IProductsClient productsClient,
         IApiOperationClient apiOperationClient,
-        IApiRevisionClient apiRevisionClient,
         IApiVersionSetClient apiVersionSetClient,
         IPolicyClient policyClient,
         IHttpClientFactory httpClientFactory,
-        IApiDataProcessor apiDataProcessor)
-        : base(httpClientFactory, extractorParameters, apiDataProcessor, apiRevisionClient)
+        IApiRevisionClient apiRevisionClient)
+        : base(httpClientFactory, extractorParameters)
     {
         this.ApisClient = apisClient;
         this.ProductsClient = productsClient;
         this.ApiOperationClient = apiOperationClient;
         this.PolicyClient = policyClient;
         this.ApiVersionSetClient = apiVersionSetClient;
+        this.ApiRevisionClient = apiRevisionClient;
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchAllApis()
     {
         var apis = await this.ApisClient.GetAllCurrentAsync(this.ExtractorParameters);
 
-        return await this.RemoveUnsupportedApis(apis);
+        return await this.RemoveUnsupportedApis(apis, this.ApiRevisionClient);
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)
@@ -105,53 +105,33 @@ public class ApiClient : ClientBase
     }
 
 
-    public async Task<Entity> Create(Entity sourceEntity, Func<string, string> modifier, string workspace)
-    {
-        return await CreateOrUpdateApi(sourceEntity, modifier, modifier(sourceEntity.Id), workspace);
-    }
+    public async Task<Entity> Create(ApiTemplateResource resource, string workspace) =>
+        await CreateOrUpdateApi(resource, workspace);
 
-    public async Task<Entity> Update(Entity sourceEntity, Func<string, string> modifier, string workspace)
-    {
-        return await CreateOrUpdateApi(sourceEntity, modifier, sourceEntity.Id, workspace);
-    }
+    public async Task<Entity> Update(ApiTemplateResource resource, string workspace) =>
+        await CreateOrUpdateApi(resource, workspace);
 
-    private async Task<Entity> CreateOrUpdateApi(Entity sourceEntity, Func<string, string> modifier, string newId,
-        string workspace)
+    private async Task<Entity> CreateOrUpdateApi(ApiTemplateResource resource, string workspace)
     {
-        if (sourceEntity.Type != EntityType.Api)
-            throw new ArgumentException("Provided entity should be of type Api");
-
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         string requestUrl = string.Format(CreateApiRequest,
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-            workspace, newId, GlobalConstants.ApiVersion);
+            workspace, resource.Name, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-
-        var apiTemplate = ((ApiTemplateResource)sourceEntity.ArmTemplate).Copy();
-        apiTemplate.Name = null;
-        apiTemplate.Properties.DisplayName = modifier(apiTemplate.Properties.DisplayName);
-        apiTemplate.Properties.Path = modifier(apiTemplate.Properties.Path);
-
-        request.Content = JsonContent.Create<ApiTemplateResource>(apiTemplate, options: DefaultSerializerOptions);
+        request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
         var response = await this.CallApiManagementAsync(azToken, request);
         var armTemplate = response.Deserialize<ApiTemplateResource>();
         return new Entity(armTemplate.Name, EntityType.Api, armTemplate.Properties.DisplayName, armTemplate);
     }
 
-    public async Task<Entity> CreateOperation(Entity sourceEntity, Entity api, string workspace)
+    public async Task<Entity> CreateOperation(string apiId, ApiOperationTemplateResource resource, string workspace)
     {
-        if (sourceEntity.Type != EntityType.ApiOperation)
-            throw new ArgumentException("Provided entity should be of type ApiOperation");
-
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         string requestUrl = string.Format(CreateApiOperationsRequest,
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-            workspace, api.Id, sourceEntity.Id, GlobalConstants.ApiVersion);
-
+            workspace, apiId, resource.Name, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-        request.Content =
-            JsonContent.Create<ApiOperationTemplateResource>((ApiOperationTemplateResource)sourceEntity.ArmTemplate,
-                options: DefaultSerializerOptions);
+        request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
         var response = await this.CallApiManagementAsync(azToken, request);
         var armTemplate = response.Deserialize<ApiOperationTemplateResource>();
         return new Entity(armTemplate.Name, EntityType.ApiOperation, armTemplate.Properties.DisplayName, armTemplate);
@@ -170,17 +150,12 @@ public class ApiClient : ClientBase
         await UploadPolicy(requestUrl, policy);
     }
 
-    public async Task UploadApiOperationPolicy(Entity api, Entity operation, string policy, string workspace)
+    public async Task UploadApiOperationPolicy(string apiId, string operationId, string policy, string workspace)
     {
-        if (api.Type != EntityType.Api)
-            throw new ArgumentException("Provided entity should be of type Api");
-        if (operation.Type != EntityType.ApiOperation)
-            throw new ArgumentException("Provided entity should be of type ApiOperation");
-
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         string requestUrl = string.Format(CreateApiOperationPolicyRequest,
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-            workspace, api.Id, operation.Id, GlobalConstants.ApiVersion);
+            workspace, apiId, operationId, GlobalConstants.ApiVersion);
 
         await UploadPolicy(requestUrl, policy);
     }

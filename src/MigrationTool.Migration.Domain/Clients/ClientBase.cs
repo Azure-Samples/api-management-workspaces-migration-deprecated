@@ -1,26 +1,18 @@
 ﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Apis;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.DataProcessors.Absctraction;
 using MigrationTool.Migration.Domain.Entities;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
-public class ClientBase : ApisClient
+public class ClientBase : ApiClientBase
 {
-    protected readonly IApiRevisionClient ApiRevisionClient;
     protected readonly ExtractorParameters ExtractorParameters;
-    protected readonly IApiDataProcessor ApiDataProcessor;
-    readonly HttpClient HttpClient;
+    protected readonly HttpClient HttpClient;
 
     protected readonly JsonSerializerOptions DefaultSerializerOptions = new JsonSerializerOptions()
     {
@@ -28,16 +20,11 @@ public class ClientBase : ApisClient
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public ClientBase(IHttpClientFactory httpClientFactory,
-        ExtractorParameters extractorParameters,
-        IApiDataProcessor apiDataProcessor,
-        IApiRevisionClient apiRevisionClient)
-        : base(httpClientFactory, apiDataProcessor)
+    public ClientBase(IHttpClientFactory httpClientFactory, ExtractorParameters extractorParameters)
+        : base(httpClientFactory)
     {
         this.ExtractorParameters = extractorParameters;
         this.HttpClient = httpClientFactory.CreateClient();
-        this.ApiRevisionClient = apiRevisionClient;
-        this.ApiDataProcessor = apiDataProcessor;
     }
 
     protected async Task<string> CallApiManagementAsync(String azToken, HttpRequestMessage request)
@@ -59,14 +46,14 @@ public class ClientBase : ApisClient
     }
 
 
-    protected async Task<IReadOnlyCollection<Entity>> RemoveUnsupportedApis(List<ApiTemplateResource> apis)
+    protected async Task<IReadOnlyCollection<Entity>> RemoveUnsupportedApis(List<ApiTemplateResource> apis, IApiRevisionClient apiRevisionClient)
     {
         apis = apis.FindAll(api => api.Properties.ApiVersionSetId == null); //remove apis with versions
         List<ApiTemplateResource> apisWithoutRevisions = new List<ApiTemplateResource>();
         foreach (var api in apis)
         {
             var apiRevisions =
-                await this.ApiRevisionClient.GetApiRevisionsAsync(api.OriginalName, this.ExtractorParameters);
+                await apiRevisionClient.GetApiRevisionsAsync(api.OriginalName, this.ExtractorParameters);
             if (apiRevisions.Count == 1)
             {
                 apisWithoutRevisions.Add(api);
