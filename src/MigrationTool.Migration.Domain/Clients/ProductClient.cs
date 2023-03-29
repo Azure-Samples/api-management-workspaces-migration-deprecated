@@ -48,7 +48,6 @@ namespace MigrationTool.Migration.Domain.Clients
 
         public async Task<IReadOnlyCollection<Entity>> FetchApis(string entityId)
         {
-            //var apis = await this.ApisClient.GetAllLinkedToProductAsync(entityId, this.ExtractorParameters); // <<< to be used when revisions and versions will be supported
             var (azToken, azSubId) = await this.Auth.GetAccessToken();
             string requestUrl = string.Format(GetAllApisLinkedToProductRequest,
                 this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
@@ -57,7 +56,7 @@ namespace MigrationTool.Migration.Domain.Clients
             this.ApiDataProcessor.ProcessData(apis);
 
 
-            return await this.RemoveUnsupportedApis(apis, this.ApiRevisionClient);
+            return await this.ProcessApiData(apis);
         }
 
         public async Task<string?> FetchPolicy(string entityId)
