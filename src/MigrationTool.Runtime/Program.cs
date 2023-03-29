@@ -1,33 +1,31 @@
 ﻿using CommandLine;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Commands.Configurations;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Extensions.DependencyInjection;
+using MigrationTool;
+using MigrationTool.IoC;
 using MigrationTool.Migration.Domain;
 using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Dependencies;
-using MigrationTool.Migration.Domain.Dependencies.Resolvers;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Executor;
-using MigrationTool.Migration.Domain.Executor.Operations;
 using MigrationTool.Migration.Domain.Planner;
 using Sharprompt;
-using MigrationTool.Migration.Domain.Operations;
 
 public class Program
 {
     public static IServiceProvider ServiceProvider;
 
-
     public static async Task Main(string[] args)
     {
-        await Parser.Default.ParseArguments<MigrationProgramConfig>(args).WithParsedAsync(MigrationProgram);
+        var applicationInfo = ApplicationInfo.GetInfo();
+        Console.WriteLine("Welcome to the Azure API Management Workspaces migration tool! (v{0})",  applicationInfo.BuildVersion);
+
+        Parser.Default.ParseArguments<MigrationProgramConfig>(args)
+                      .WithParsedAsync(config => MigrationProgram(config, applicationInfo));
     }
 
-
-    public static async Task MigrationProgram(MigrationProgramConfig config)
+    private static async Task MigrationProgram(MigrationProgramConfig config, ApplicationInfo applicationInfo)
     {
-        ServiceProvider = CreateServiceProvider(config);
+        ServiceProvider = ServiceProviderFactory.CreateServiceProvider(config, applicationInfo); 
         Console.WriteLine("Fetching apis...");
         var apis = await ChooseApis();
         Console.WriteLine("Fetching workspaces...");
@@ -67,55 +65,5 @@ public class Program
         if (workspaces.Count > 0)
             return Prompt.Select("To which workspace you want to migrate?", workspaces);
         return null;
-    }
-
-    private static IServiceProvider CreateServiceProvider(MigrationProgramConfig config)
-    {
-        IServiceCollection collection = new ServiceCollection();
-        ServiceExtensions.AddArmTemplatesServices(collection, null);
-
-        var extractorParamters = new ExtractorParameters(new ExtractorConsoleAppConfiguration()
-            { ResourceGroup = config.ResourceGroup, SourceApimName = config.ServiceName });
-        collection.AddSingleton(extractorParamters);
-
-
-        collection.AddSingleton<ApiClient, ApiClient>();
-        collection.AddSingleton<NamedValuesClient, NamedValuesClient>();
-        collection.AddSingleton<PolicyFragmentsClient, PolicyFragmentsClient>();
-        collection.AddSingleton<ProductClient, ProductClient>();
-        collection.AddSingleton<WorkspaceClient, WorkspaceClient>();
-        collection.AddSingleton<SubscriptionClient, SubscriptionClient>();
-
-        collection.AddSingleton<PolicyRelatedDependenciesResolver, PolicyRelatedDependenciesResolver>();
-        collection.AddSingleton<DependencyService, DependencyService>();
-        collection.AddSingleton<IEntityDependencyResolver, ApiDependencyResolver>();
-        collection.AddSingleton<IEntityDependencyResolver, ProductDependencyResolver>();
-        collection.AddSingleton<IEntityDependencyResolver, NamedValueDependencyResolver>();
-        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Group));
-        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.ApiOperation));
-        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Tag));
-        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.PolicyFragment));
-        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Subscription));
-
-        collection.AddSingleton<DependencyGraphBuilder, DependencyGraphBuilder>();
-        collection.AddSingleton<EntitiesRegistry, EntitiesRegistry>();
-        collection.AddSingleton<PolicyModifier, PolicyModifier>();
-        collection.AddSingleton<MigrationPlanExecutor, MigrationPlanExecutor>();
-        collection.AddSingleton<OperationHandler, ApiCopyOperationHandler>();
-        collection.AddSingleton<OperationHandler, ProductCopyOperationHandler>();
-        collection.AddSingleton<OperationHandler, ProductApiConnectionHandler>();
-        collection.AddSingleton<OperationHandler, SubscriptionCopyHandler>();
-        collection.AddSingleton<OperationHandler>(_ =>
-            new EmptyHandler(EntityType.Api | EntityType.Subscription, typeof(ConnectOperation)));
-        collection.AddSingleton<OperationHandler>(_ =>
-            new EmptyHandler(EntityType.Product | EntityType.Subscription, typeof(ConnectOperation)));
-
-        collection.AddSingleton<OperationHandler, NamedValueCopyHandler>();
-        collection.AddSingleton<OperationHandler>(_ =>
-            new EmptyHandler(EntityType.Api | EntityType.NamedValue, typeof(ConnectOperation)));
-        collection.AddSingleton<OperationHandler>(_ =>
-            new EmptyHandler(EntityType.Product | EntityType.NamedValue, typeof(ConnectOperation)));
-
-        return collection.BuildServiceProvider();
     }
 }
