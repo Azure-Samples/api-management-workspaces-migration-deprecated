@@ -1,26 +1,25 @@
 ﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Abstractions;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 
 namespace MigrationTool.Migration.Domain.Entities;
-public record VersionSetEntity(string Id) : Entity(Id, EntityType.VersionSet)
+
+public class VersionSetEntity : Entity, IEquatable<VersionSetEntity>
 {
-    public VersionSetEntity(string id, string displayName, TemplateResource armTemplate): this(id)
+    public ApiVersionSetTemplateResource ArmTemplate { get; set; }
+
+    public VersionSetEntity(string id) : base(id, EntityType.VersionSet)
+    {
+    }
+
+    public VersionSetEntity(string id, string displayName, ApiVersionSetTemplateResource armTemplate) : this(id)
     {
         this.DisplayName = displayName;
         this.ArmTemplate = armTemplate;
     }
 
-    public List<Entity> Apis { get; set; } = new List<Entity>();
+    public List<ApiEntity> Apis { get; set; } = new List<ApiEntity>();
 
-    public override string ToString()
-        => $"Version Set: {this.DisplayName}";
+    public override int GetHashCode() => base.GetHashCode();
 
-    public override int GetHashCode()
-    => HashCode.Combine(this.Id, (int)this.Type);
-
-    public virtual bool Equals(VersionSetEntity? other)
-    {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return this.Id == other.Id && this.Type == other.Type;
-    }
+    public virtual bool Equals(VersionSetEntity? other) => base.Equals(other);
 }

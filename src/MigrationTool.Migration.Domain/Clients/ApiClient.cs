@@ -5,8 +5,6 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Api
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using MigrationTool.Migration.Domain.Entities;
-using MigrationTool.Migration.Domain.Extensions;
-using MigrationTool.Migration.Domain.Executor.Operations;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
@@ -31,30 +29,24 @@ public class ApiClient : ClientBase
     private readonly IProductsClient ProductsClient;
     private readonly IApiOperationClient ApiOperationClient;
     private readonly IPolicyClient PolicyClient;
-    private readonly EntitiesRegistry Registry;
 
     public ApiClient(
         ExtractorParameters extractorParameters,
         IApisClient apisClient, IProductsClient productsClient,
         IApiOperationClient apiOperationClient,
-        IApiRevisionClient apiRevisionClient,
         IPolicyClient policyClient,
-        IHttpClientFactory httpClientFactory,
-        IApiDataProcessor apiDataProcessor,
-        EntitiesRegistry registry
-        )
-        : base(httpClientFactory, extractorParameters, apiDataProcessor, apiRevisionClient)
+        IHttpClientFactory httpClientFactory)
+        : base(httpClientFactory, extractorParameters)
     {
         this.ApisClient = apisClient;
         this.ProductsClient = productsClient;
         this.ApiOperationClient = apiOperationClient;
         this.PolicyClient = policyClient;
-        this.Registry = registry;
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchAllApisAndVersionSets()
     {
-        var apis = await this.ApisClient.GetAllCurrentAsync(this.ExtractorParameters);
+        var apis = await this.ApisClient.GetAllAsync(this.ExtractorParameters);
 
         return await this.ProcessApiData(apis);
     }
@@ -62,7 +54,11 @@ public class ApiClient : ClientBase
     public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)
     {
         var revisions = await this.ApiRevisionClient.GetApiRevisionsAsync(apiId, this.ExtractorParameters);
-        return revisions.ConvertAll(api => new Entity(api.ApiId, EntityType.Api, api.ApiRevision, null));
+        var revisionIds = revisions.ConvertAll(_ => _.ApiId).ToHashSet();
+        var apis = await this.ApisClient.GetAllAsync(this.ExtractorParameters, true);
+        return apis.Where(api => revisionIds.Contains(api.Name))
+            .Select(api => new Entity(api.Name, EntityType.Api, api.Properties.DisplayName, api))
+            .ToList();
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchProducts(string entityId)

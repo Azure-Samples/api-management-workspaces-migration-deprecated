@@ -1,6 +1,7 @@
 ﻿
 using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Entities;
+using MigrationTool.Migration.Domain.Extensions;
 using MigrationTool.Migration.Domain.Operations;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
@@ -23,11 +24,12 @@ public class VersionSetCopyOperationHandler : OperationHandler
     {
         var copyOperation = this.GetOperationOrThrow<CopyOperation>(operation);
 
-        var originalVersionSet = copyOperation.Entity;
-
-        var newVersionSet = await this.VersionSetClient.Create(originalVersionSet, IdModifier, workspaceId);
+        var originalVersionSet = copyOperation.Entity as VersionSetEntity ?? throw new InvalidOperationException();
+        var versionSetTemplate = originalVersionSet.ArmTemplate.Copy();
+        versionSetTemplate.Name = $"{versionSetTemplate.Name}-in-{workspaceId}";
+        versionSetTemplate.Properties.DisplayName = $"{versionSetTemplate.Properties.DisplayName}-in-{workspaceId}";
+        
+        var newVersionSet = await this.VersionSetClient.Create(versionSetTemplate, workspaceId);
         this.Registry.RegisterMapping(originalVersionSet, newVersionSet);
-
-        string IdModifier(string id) => $"{id}-in-{workspaceId}";
     }
 }

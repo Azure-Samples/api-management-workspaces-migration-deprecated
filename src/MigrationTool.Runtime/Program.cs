@@ -132,6 +132,12 @@ public class Program
             new EmptyHandler(EntityType.Api | EntityType.NamedValue, typeof(ConnectOperation)));
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.Product | EntityType.NamedValue, typeof(ConnectOperation)));
+        
+        
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.Api | EntityType.VersionSet, typeof(ConnectOperation)));
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.Product | EntityType.VersionSet, typeof(ConnectOperation)));
 
         return collection.BuildServiceProvider();
     }

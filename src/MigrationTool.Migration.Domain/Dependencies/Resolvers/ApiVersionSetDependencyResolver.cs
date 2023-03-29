@@ -1,6 +1,4 @@
-﻿
-using MigrationTool.Migration.Domain.Clients;
-using MigrationTool.Migration.Domain.Entities;
+﻿using MigrationTool.Migration.Domain.Entities;
 
 namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
@@ -10,6 +8,8 @@ public class ApiVersionSetDependencyResolver : IEntityDependencyResolver
 
     public async Task<IReadOnlyCollection<Entity>> ResolveDependencies(Entity entity)
     {
-        return ((VersionSetEntity) entity).Apis;
+        if (this.Type != entity.Type || entity is not VersionSetEntity versionSetEntity) throw new Exception();
+
+        return versionSetEntity.Apis;
     }
 }

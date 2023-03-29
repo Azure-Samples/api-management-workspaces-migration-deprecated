@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiOperations;
+﻿using System.Text.RegularExpressions;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiOperations;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Entities;
@@ -9,6 +10,8 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class ApiCopyOperationHandler : OperationHandler
 {
+    private static readonly Regex ApiIdWithRevision = new Regex("^(.*);rev=(.*)$");
+
     private readonly ApiClient apiClient;
     private readonly EntitiesRegistry registry;
     private readonly PolicyModifier policyModifier;
@@ -26,14 +29,25 @@ public class ApiCopyOperationHandler : OperationHandler
     public override async Task Handle(IMigrationOperation operation, string workspaceId)
     {
         var copyOperation = this.GetOperationOrThrow<CopyOperation>(operation);
-        var originalEntity = copyOperation.Entity;
+        var originalEntity = copyOperation.Entity as ApiEntity ?? throw new InvalidOperationException();
 
-        var newTemplate = ModifyTemplate(workspaceId, (ApiTemplateResource)originalEntity.ArmTemplate);
+        var newTemplate = this.ModifyTemplate(workspaceId, originalEntity.ArmTemplate);
 
-        var newApi = await this.apiClient.Create(newTemplate, workspaceId);
+        var newApi = await this.CopyApi(workspaceId, newTemplate, originalEntity);
         this.registry.RegisterMapping(originalEntity, newApi);
 
-        var apiPolicy = await this.apiClient.FetchPolicy(originalEntity.Id);
+        foreach (var revision in originalEntity.Revisions)
+        {
+            var revisionTemplate = this.ModifyTemplate(workspaceId, revision.ArmTemplate);
+            await this.CopyApi(workspaceId, revisionTemplate, revision);
+        }
+    }
+
+    async Task<Entity> CopyApi(string workspaceId, ApiTemplateResource newTemplate, ApiEntity originalEntity)
+    {
+        var newApi = await this.apiClient.Create(newTemplate, workspaceId);
+
+        var apiPolicy = await this.apiClient.FetchPolicy(newApi.Id);
         if (apiPolicy != null)
         {
             var modifiedPolicy = this.policyModifier.Modify(apiPolicy);
@@ -51,12 +65,15 @@ public class ApiCopyOperationHandler : OperationHandler
                 await this.apiClient.UploadApiOperationPolicy(newApi.Id, newOperation.Id, modifiedPolicy, workspaceId);
             }
         }
+
+        return newApi;
     }
 
-    ApiTemplateResource ModifyTemplate(string workspaceId, ApiTemplateResource template)
+    private ApiTemplateResource ModifyTemplate(string workspaceId, ApiTemplateResource template)
     {
         var newTemplate = template.Copy();
-        newTemplate.Name = $"{newTemplate.Name}-in-{workspaceId}";
+
+        newTemplate.Name = ApiIdWithRevision.Replace(template.Name, $"$1-in-{workspaceId};rev=$2");
         newTemplate.Properties.DisplayName = $"{template.Properties.DisplayName}-in-{workspaceId}";
         newTemplate.Properties.Path = $"{template.Properties.Path}-in-{workspaceId}";
 
