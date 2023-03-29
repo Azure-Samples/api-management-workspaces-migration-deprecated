@@ -10,11 +10,8 @@ namespace MigrationTool.Migration.Domain.Clients
         const string GetWorkspacesRequest =
             "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces?api-version={4}";
 
-        public WorkspaceClient(IHttpClientFactory httpClientFactory,
-            ExtractorParameters extractorParameters,
-            IApiDataProcessor apiDataProcessor,
-            IApiRevisionClient apiRevisionClient)
-            : base(httpClientFactory, extractorParameters, apiDataProcessor, apiRevisionClient)
+        public WorkspaceClient(IHttpClientFactory httpClientFactory, ExtractorParameters extractorParameters)
+            : base(httpClientFactory, extractorParameters)
         {
         }
 

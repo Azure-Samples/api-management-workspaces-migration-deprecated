@@ -20,11 +20,8 @@ public class SubscriptionClient : ClientBase
     const string CreateRequest =
         "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/subscriptions/{5}?api-version={6}";
 
-    public SubscriptionClient(IHttpClientFactory httpClientFactory,
-        ExtractorParameters extractorParameters,
-        IApiDataProcessor apiDataProcessor,
-        IApiRevisionClient apiRevisionClient)
-        : base(httpClientFactory, extractorParameters, apiDataProcessor, apiRevisionClient)
+    public SubscriptionClient(IHttpClientFactory httpClientFactory, ExtractorParameters extractorParameters)
+        : base(httpClientFactory, extractorParameters)
     {
     }
 
@@ -49,17 +46,15 @@ public class SubscriptionClient : ClientBase
             .ToList();
     }
 
-    public async Task<Entity> Create(Entity entity, string workspaceId)
+    public async Task<Entity> Create(SubscriptionsTemplateResource resource, string workspaceId)
     {
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         string requestUrl = string.Format(CreateRequest,
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-            workspaceId, entity.Id, GlobalConstants.ApiVersion);
+            workspaceId, resource.Name, GlobalConstants.ApiVersion);
         
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-        request.Content =
-            JsonContent.Create<SubscriptionsTemplateResource>((SubscriptionsTemplateResource)entity.ArmTemplate,
-                options: DefaultSerializerOptions);
+        request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
         
         var response = await this.CallApiManagementAsync(azToken, request);
         var armTemplate = response.Deserialize<SubscriptionsTemplateResource>();

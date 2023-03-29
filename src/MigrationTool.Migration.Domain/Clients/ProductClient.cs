@@ -29,17 +29,21 @@ namespace MigrationTool.Migration.Domain.Clients
 
         private readonly IApisClient ApisClient;
         private readonly IPolicyClient PolicyClient;
+        private readonly IApiRevisionClient ApiRevisionClient;
+        private readonly IApiDataProcessor ApiDataProcessor;
 
         public ProductClient(ExtractorParameters extractorParameters,
             IApisClient apisClient,
             IPolicyClient policyClient,
             IHttpClientFactory httpClientFactory,
-            IApiDataProcessor apiDataProcessor,
-            IApiRevisionClient apiRevisionClient)
-            : base(httpClientFactory, extractorParameters, apiDataProcessor, apiRevisionClient)
+            IApiRevisionClient apiRevisionClient,
+            IApiDataProcessor apiDataProcessor)
+            : base(httpClientFactory, extractorParameters)
         {
             this.ApisClient = apisClient;
             this.PolicyClient = policyClient;
+            this.ApiRevisionClient = apiRevisionClient;
+            this.ApiDataProcessor = apiDataProcessor;
         }
 
         public async Task<IReadOnlyCollection<Entity>> FetchApis(string entityId)
@@ -61,34 +65,20 @@ namespace MigrationTool.Migration.Domain.Clients
             return policy?.Properties?.PolicyContent;
         }
 
-        public async Task<Entity> CreateProduct(Entity sourceEntity, Func<string, string> modifier, string workspace)
-        {
-            return await CreateOrUpdateProduct(sourceEntity, modifier, modifier(sourceEntity.Id), workspace);
-        }
+        public async Task<Entity> CreateProduct(ProductApiTemplateResource resource, string workspace) =>
+            await this.CreateOrUpdateProduct(resource, workspace);
 
-        public async Task<Entity> UpdateProduct(Entity sourceEntity, Func<string, string> modifier, string workspace)
-        {
-            return await CreateOrUpdateProduct(sourceEntity, modifier, sourceEntity.Id, workspace);
-        }
+        public async Task<Entity> UpdateProduct(ProductApiTemplateResource resource, string workspace) =>
+            await this.CreateOrUpdateProduct(resource, workspace);
 
-        private async Task<Entity> CreateOrUpdateProduct(Entity sourceEntity, Func<string, string> modifier, string id,
-            string workspace)
+        private async Task<Entity> CreateOrUpdateProduct(ProductApiTemplateResource resource, string workspace)
         {
-            if (sourceEntity.Type != EntityType.Product)
-                throw new ArgumentException("Provided entity should be of type Product");
-
             var (azToken, azSubId) = await this.Auth.GetAccessToken();
             string requestUrl = string.Format(CreateProductRequest,
                 this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-                workspace, id, GlobalConstants.ApiVersion);
+                workspace, resource.Name, GlobalConstants.ApiVersion);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-
-            var productTemplate = ((ProductApiTemplateResource)sourceEntity.ArmTemplate).Copy();
-            productTemplate.Name = null;
-            productTemplate.Properties.DisplayName = modifier(productTemplate.Properties.DisplayName);
-
-            request.Content =
-                JsonContent.Create<ProductApiTemplateResource>(productTemplate, options: DefaultSerializerOptions);
+            request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
             var response = await this.CallApiManagementAsync(azToken, request);
             var armTemplate = response.Deserialize<ProductApiTemplateResource>();
             return new Entity(armTemplate.Name, EntityType.Product, armTemplate.Properties.DisplayName, armTemplate);

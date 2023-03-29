@@ -9,19 +9,17 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Api
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 //using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.DataProcessors.Absctraction;
 using MigrationTool.Migration.Domain.Entities;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
-public class ClientBase : ApisClient
+public class ClientBase : ApiClientBase
 {
     const string GetVersionSetsRequest = "{0}{1}?api-version={2}";
 
     protected readonly IApiRevisionClient ApiRevisionClient;
     protected readonly ExtractorParameters ExtractorParameters;
-    protected readonly IApiDataProcessor ApiDataProcessor;
-    readonly HttpClient HttpClient;
+    protected readonly HttpClient HttpClient;
 
     protected readonly JsonSerializerOptions DefaultSerializerOptions = new JsonSerializerOptions()
     {
@@ -29,16 +27,11 @@ public class ClientBase : ApisClient
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public ClientBase(IHttpClientFactory httpClientFactory,
-        ExtractorParameters extractorParameters,
-        IApiDataProcessor apiDataProcessor,
-        IApiRevisionClient apiRevisionClient)
-        : base(httpClientFactory, apiDataProcessor)
+    public ClientBase(IHttpClientFactory httpClientFactory, ExtractorParameters extractorParameters)
+        : base(httpClientFactory)
     {
         this.ExtractorParameters = extractorParameters;
         this.HttpClient = httpClientFactory.CreateClient();
-        this.ApiRevisionClient = apiRevisionClient;
-        this.ApiDataProcessor = apiDataProcessor;
     }
 
     protected async Task<string> CallApiManagementAsync(String azToken, HttpRequestMessage request)
