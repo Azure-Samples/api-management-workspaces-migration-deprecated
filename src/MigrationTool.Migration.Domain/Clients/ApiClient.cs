@@ -6,7 +6,6 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Api
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Extensions;
-using MigrationTool.Migration.Domain.Executor.Operations;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
@@ -31,32 +30,32 @@ public class ApiClient : ClientBase
     private readonly IProductsClient ProductsClient;
     private readonly IApiOperationClient ApiOperationClient;
     private readonly IPolicyClient PolicyClient;
-    private readonly EntitiesRegistry Registry;
+    private readonly IApiVersionSetClient ApiVersionSetClient;
+    private readonly IApiRevisionClient ApiRevisionClient;
 
     public ApiClient(
         ExtractorParameters extractorParameters,
         IApisClient apisClient, IProductsClient productsClient,
         IApiOperationClient apiOperationClient,
-        IApiRevisionClient apiRevisionClient,
+        IApiVersionSetClient apiVersionSetClient,
         IPolicyClient policyClient,
         IHttpClientFactory httpClientFactory,
-        IApiDataProcessor apiDataProcessor,
-        EntitiesRegistry registry
-        )
-        : base(httpClientFactory, extractorParameters, apiDataProcessor, apiRevisionClient)
+        IApiRevisionClient apiRevisionClient)
+        : base(httpClientFactory, extractorParameters)
     {
         this.ApisClient = apisClient;
         this.ProductsClient = productsClient;
         this.ApiOperationClient = apiOperationClient;
         this.PolicyClient = policyClient;
-        this.Registry = registry;
+        this.ApiVersionSetClient = apiVersionSetClient;
+        this.ApiRevisionClient = apiRevisionClient;
     }
 
-    public async Task<IReadOnlyCollection<Entity>> FetchAllApisAndVersionSets()
+    public async Task<IReadOnlyCollection<Entity>> FetchAllApis()
     {
         var apis = await this.ApisClient.GetAllCurrentAsync(this.ExtractorParameters);
 
-        return await this.ProcessApiData(apis);
+        return await this.RemoveUnsupportedApis(apis, this.ApiRevisionClient);
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)
@@ -119,7 +118,6 @@ public class ApiClient : ClientBase
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
             workspace, resource.Name, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-
         request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
         var response = await this.CallApiManagementAsync(azToken, request);
         var armTemplate = response.Deserialize<ApiTemplateResource>();

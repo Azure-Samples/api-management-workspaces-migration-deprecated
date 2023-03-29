@@ -5,7 +5,7 @@ namespace MigrationTool.Migration.Domain.Dependencies;
 public class DependencyGraphBuilder
 {
     private static readonly IReadOnlySet<EntityType> ApiInboundTypes = new HashSet<EntityType>()
-        { EntityType.Product, EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment, EntityType.VersionSet };
+        { EntityType.Product, EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment };
 
     private static readonly IReadOnlySet<EntityType> ProductInboundTypes = new HashSet<EntityType>()
         { EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment };
@@ -51,7 +51,6 @@ public class DependencyGraphBuilder
     private static IReadOnlySet<EntityType> InboundDependenciesFilter(EntityType type) =>
         type switch
         {
-            EntityType.VersionSet => ApiInboundTypes,
             EntityType.Api => ApiInboundTypes,
             EntityType.Product => ProductInboundTypes,
             // EntityType.ApiOperation => entity => false,
