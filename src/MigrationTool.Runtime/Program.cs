@@ -56,22 +56,8 @@ public class Program
     private static async Task<IEnumerable<Entity>> ChooseApis()
     {
         var apisClient = ServiceProvider.GetRequiredService<ApiClient>();
-        var apis = await apisClient.FetchAllApisAndVersionSets();
-        var selected = Prompt.MultiSelect("Select apis to migrate", apis);
-
-        HashSet<Entity> versionedApis = new HashSet<Entity>();
-        selected.Where(item => item.Type == EntityType.VersionSet).ToList().ForEach(versionSet =>
-        {
-            versionedApis.UnionWith(((VersionSetEntity)versionSet).Apis);
-        });
-
-        //selected
-        //selected.Append(versionedApis);
-        List<Entity> allApis = new List<Entity>(); 
-        allApis.AddRange(selected.Where(item => item.Type == EntityType.Api));
-        allApis.AddRange(versionedApis);
-        return allApis;
-        //return selected;
+        var apis = await apisClient.FetchAllApis();
+        return Prompt.MultiSelect("Select apis to migrate", apis);
     }
 
     private static async Task<string?> ChooseWorkspace()
@@ -99,13 +85,11 @@ public class Program
         collection.AddSingleton<ProductClient, ProductClient>();
         collection.AddSingleton<WorkspaceClient, WorkspaceClient>();
         collection.AddSingleton<SubscriptionClient, SubscriptionClient>();
-        collection.AddSingleton<VersionSetClient, VersionSetClient>();
 
         collection.AddSingleton<PolicyRelatedDependenciesResolver, PolicyRelatedDependenciesResolver>();
         collection.AddSingleton<DependencyService, DependencyService>();
         collection.AddSingleton<IEntityDependencyResolver, ApiDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver, ProductDependencyResolver>();
-        collection.AddSingleton<IEntityDependencyResolver, ApiVersionSetDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver, NamedValueDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Group));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.ApiOperation));
@@ -121,7 +105,6 @@ public class Program
         collection.AddSingleton<OperationHandler, ProductCopyOperationHandler>();
         collection.AddSingleton<OperationHandler, ProductApiConnectionHandler>();
         collection.AddSingleton<OperationHandler, SubscriptionCopyHandler>();
-        collection.AddSingleton<OperationHandler, VersionSetCopyOperationHandler>();
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.Api | EntityType.Subscription, typeof(ConnectOperation)));
         collection.AddSingleton<OperationHandler>(_ =>

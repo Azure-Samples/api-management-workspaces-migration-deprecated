@@ -11,5 +11,4 @@ public enum EntityType
     PolicyFragment = 1 << 5,
     NamedValue = 1 << 6,
     Tag = 1 << 7,
-    VersionSet = 1 << 8,
 }

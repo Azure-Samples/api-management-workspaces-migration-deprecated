@@ -4,8 +4,8 @@ namespace MigrationTool.Migration.Domain.Entities;
 
 public record Entity(string Id, EntityType Type)
 {
-    public string DisplayName { get; set; }
-    public TemplateResource ArmTemplate { get; set; }
+    public string DisplayName { get; }
+    public TemplateResource ArmTemplate { get; }
     
     public Entity(string id, EntityType type, string displayName, TemplateResource armTemplate) 
         : this(id, type)
