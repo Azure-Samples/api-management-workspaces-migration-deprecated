@@ -6,6 +6,9 @@ on:
     paths:
     - .github/workflows/ci.yml
     - src/**
+  push:
+    branches:
+      - main
 
 env:
   dotnetVersion: '6.0.x'
