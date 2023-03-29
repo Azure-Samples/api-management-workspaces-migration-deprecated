@@ -120,16 +120,6 @@ public class ApiClient : ClientBase
             workspace, resource.Name, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
 
-        // var apiTemplate = ((ApiTemplateResource)sourceEntity.ArmTemplate).Copy();
-        // apiTemplate.Name = null;
-        // apiTemplate.Properties.DisplayName = modifier(apiTemplate.Properties.DisplayName);
-        // apiTemplate.Properties.Path = modifier(apiTemplate.Properties.Path);
-        // Entity newVersionSet;
-        // Entity originalVersionSet = new VersionSetEntity(apiTemplate.Properties.ApiVersionSetId);
-        // this.Registry.TryGetMapping(originalVersionSet, out newVersionSet);
-        // apiTemplate.Properties.ApiVersionSetId = newVersionSet.Id;
-
-        // request.Content = JsonContent.Create<ApiTemplateResource>(apiTemplate, options: DefaultSerializerOptions);
         request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
         var response = await this.CallApiManagementAsync(azToken, request);
         var armTemplate = response.Deserialize<ApiTemplateResource>();

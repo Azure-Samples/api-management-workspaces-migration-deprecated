@@ -53,12 +53,21 @@ public class ApiCopyOperationHandler : OperationHandler
         }
     }
 
-    static ApiTemplateResource ModifyTemplate(string workspaceId, ApiTemplateResource template)
+    ApiTemplateResource ModifyTemplate(string workspaceId, ApiTemplateResource template)
     {
         var newTemplate = template.Copy();
         newTemplate.Name = $"{newTemplate.Name}-in-{workspaceId}";
         newTemplate.Properties.DisplayName = $"{template.Properties.DisplayName}-in-{workspaceId}";
         newTemplate.Properties.Path = $"{template.Properties.Path}-in-{workspaceId}";
+
+        if (template.Properties.ApiVersionSetId != null)
+        {
+            Entity originalVersionSet = new VersionSetEntity(template.Properties.ApiVersionSetId);
+            if (!this.registry.TryGetMapping(originalVersionSet, out var newVersionSet))
+                throw new Exception("Version set has not been found in the registry");
+            newTemplate.Properties.ApiVersionSetId = newVersionSet.Id;
+        }
+
         return newTemplate;
     }
 }
