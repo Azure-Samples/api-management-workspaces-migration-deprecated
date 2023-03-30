@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Open a Support Ticket 📞
+    url: https://portal.azure.com/#view/Microsoft_Azure_Support/HelpAndSupportBlade/~/overview
+    about: Open a support ticket to get help.
   - name: Ask a question 💬
     url: https://github.com/Azure-Samples/api-management-workspaces-migration/discussions
     about: Ask a question or request support for using Azure API Management Workspace Migration CLI.
