@@ -61,7 +61,7 @@ public class VersionSetClient : ClientBase
             this.BaseUrl, newFullId, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
         request.Content = JsonContent.Create(versionSetTemplate, options: DefaultSerializerOptions);
-        var response = await this.CallApiManagementAsync(azToken, request);
+        var response = await this.GetResponseBodyAsync(azToken, request);
         var armTemplate = response.Deserialize<ApiVersionSetTemplateResource>();
         return new VersionSetEntity(newFullId, armTemplate.Properties.DisplayName, armTemplate);
     }

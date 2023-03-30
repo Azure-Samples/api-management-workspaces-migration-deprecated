@@ -44,19 +44,19 @@ public class ApiCopyOperationHandler : OperationHandler
 
     async Task<Entity> CopyApi(string workspaceId, ApiEntity originalEntity)
     {
-
+        var template = ModifyTemplate(workspaceId, originalEntity.ArmTemplate);
 
         var openApiDef = await this.apiClient.ExportOpenApiDefinition(originalEntity.Id);
 
         var json = JObject.Parse(openApiDef);
         var requestPayload = new JObject();
         requestPayload["properties"] = json;
-        requestPayload["properties"]["path"] = $"{template.Properties.Path}-in-{workspaceId}";
-        requestPayload["properties"]["value"]["info"]["title"] = $"{template.Properties.DisplayName}-in-{workspaceId}";
+        requestPayload["properties"]["path"] = template.Properties.Path;
+        requestPayload["properties"]["value"]["info"]["title"] = template.Properties.DisplayName;
 
-        var newId = ApiIdWithRevision.Replace(template.Name, $"$1-in-{workspaceId};rev=$2");
+        var newApi = await this.apiClient.Create(template, workspaceId);
 
-        var newApi = await this.apiClient.ImportOpenApiDefinition(requestPayload.ToString(), newId, workspaceId);
+        await this.apiClient.ImportOpenApiDefinition(requestPayload.ToString(), newApi.Id, workspaceId);
 
         var apiPolicy = await this.apiClient.FetchPolicy(newApi.Id);
         if (apiPolicy != null)

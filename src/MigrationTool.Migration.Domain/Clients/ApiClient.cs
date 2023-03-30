@@ -127,12 +127,12 @@ public class ApiClient : ClientBase
         return await this.CallApiManagementAsync(azToken, requestUrl);
     }
 
-    public async Task<Entity> ImportOpenApiDefinition(string apiDefinition, string newApiId, string workspace)
+    public async Task<Entity> ImportOpenApiDefinition(string apiDefinition, string apiId, string workspace)
     {
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         var requestUrl = string.Format(ImportApiRequest,
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-            workspace, newApiId, GlobalConstants.ApiVersion);
+            workspace, apiId, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
 
         request.Content = new StringContent(apiDefinition, System.Text.Encoding.UTF8, "application/json");
@@ -159,6 +159,25 @@ public class ApiClient : ClientBase
         }
         return newApi;
     }
+
+
+    public async Task<Entity> Create(ApiTemplateResource resource, string workspace) =>
+        await CreateOrUpdateApi(resource, workspace);
+
+
+    private async Task<Entity> CreateOrUpdateApi(ApiTemplateResource resource, string workspace)
+    {
+        var (azToken, azSubId) = await this.Auth.GetAccessToken();
+        string requestUrl = string.Format(CreateApiRequest,
+            this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
+            workspace, resource.Name, GlobalConstants.ApiVersion);
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
+        request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
+        var response = await this.GetResponseBodyAsync(azToken, request);
+        var armTemplate = response.Deserialize<ApiTemplateResource>();
+        return new Entity(armTemplate.Name, EntityType.Api, armTemplate.Properties.DisplayName, armTemplate);
+    }
+
 
     public async Task UploadApiPolicy(Entity api, string policy, string workspace)
     {
