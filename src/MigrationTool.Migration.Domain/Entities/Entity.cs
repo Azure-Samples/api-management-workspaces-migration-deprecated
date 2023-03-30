@@ -24,7 +24,7 @@ public class Entity : IEquatable<Entity>
     }
 
     public override string ToString()
-        => $"{this.Type}: {this.DisplayName}";
+        => $"{this.Type}: {this.DisplayName} ({this.Id})";
 
     public override int GetHashCode()
         => HashCode.Combine(this.Id, (int)this.Type);
