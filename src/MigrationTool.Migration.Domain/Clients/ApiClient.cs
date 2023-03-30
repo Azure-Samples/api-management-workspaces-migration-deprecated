@@ -1,17 +1,13 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json.Nodes;
+using System.Text;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Abstractions;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiOperations;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Executor.Operations;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using YamlDotNet.Core.Tokens;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
@@ -124,6 +120,8 @@ public class ApiClient : ClientBase
         string requestUrl = string.Format(ExportApiRequest,
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
             apiId, GlobalConstants.ApiVersion);
+        // HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        // request.Headers.Add("Accept", "application/vnd.oai.openapi+json");
         return await this.CallApiManagementAsync(azToken, requestUrl);
     }
 
@@ -134,8 +132,9 @@ public class ApiClient : ClientBase
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
             workspace, apiId, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-
-        request.Content = new StringContent(apiDefinition, System.Text.Encoding.UTF8, "application/json");
+        // request.Headers.IfMatch.Add(EntityTagHeaderValue.Any);
+        // request.Content = new StringContent(apiDefinition, Encoding.UTF8, "application/vnd.oai.openapi+json");
+        request.Content = new StringContent(apiDefinition, Encoding.UTF8, "application/json");
         var creationResponse = await this.CallApiManagementAsync(azToken, request);
 
         Entity newApi = null;

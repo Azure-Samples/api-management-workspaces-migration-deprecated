@@ -41,7 +41,6 @@ public class SubscriptionClient : ClientBase
         var response = await this.GetPagedResponseAsync<SubscriptionsTemplateResource>(azToken, requestUrl);
 
         return response
-            .Where(s => !s.Properties.ownerId.EndsWith("/users/1")) // skip subscription for admin user
             .Select(s => new Entity(s.Name, EntityType.Subscription, s.Properties.displayName, s))
             .ToList();
     }

@@ -45,20 +45,13 @@ public class ApiCopyOperationHandler : OperationHandler
     async Task<Entity> CopyApi(string workspaceId, ApiEntity originalEntity)
     {
         var template = ModifyTemplate(workspaceId, originalEntity.ArmTemplate);
-
-        var openApiDef = await this.apiClient.ExportOpenApiDefinition(originalEntity.Id);
-
-        var json = JObject.Parse(openApiDef);
-        var requestPayload = new JObject();
-        requestPayload["properties"] = json;
-        requestPayload["properties"]["path"] = template.Properties.Path;
-        requestPayload["properties"]["value"]["info"]["title"] = template.Properties.DisplayName;
-
         var newApi = await this.apiClient.Create(template, workspaceId);
 
-        await this.apiClient.ImportOpenApiDefinition(requestPayload.ToString(), newApi.Id, workspaceId);
-
-        var apiPolicy = await this.apiClient.FetchPolicy(newApi.Id);
+        var openApiDef = await this.apiClient.ExportOpenApiDefinition(originalEntity.Id);
+        var modifiedOpenApiDef = this.ModifyOpenApiDefinition(openApiDef, template);
+        await this.apiClient.ImportOpenApiDefinition(modifiedOpenApiDef, newApi.Id, workspaceId);
+        
+        var apiPolicy = await this.apiClient.FetchPolicy(originalEntity.Id);
         if (apiPolicy != null)
         {
             var modifiedPolicy = this.policyModifier.Modify(apiPolicy);
@@ -76,6 +69,16 @@ public class ApiCopyOperationHandler : OperationHandler
         }
 
         return newApi;
+    }
+
+    private string ModifyOpenApiDefinition(string openAPIDef, ApiTemplateResource template)
+    {
+        var json = JObject.Parse(openAPIDef);
+        json["path"] = template.Properties.Path;
+        json["value"]!["info"]!["title"] = template.Properties.DisplayName;
+        var withProperties = new JObject();
+        withProperties["properties"] = json;
+        return withProperties.ToString();
     }
 
     private ApiTemplateResource ModifyTemplate(string workspaceId, ApiTemplateResource template)

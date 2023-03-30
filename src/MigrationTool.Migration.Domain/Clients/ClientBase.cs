@@ -108,7 +108,7 @@ public class ClientBase : ApiClientBase
         List<ApiEntity> apisWithRevisions = new List<ApiEntity>();
         var regex = new Regex("^(.*);rev=.+$");
         var revisionGroups = apis.GroupBy(api => regex.Match(api.Name).Groups[1].Value)
-            .ToDictionary(g => g.First(api => !api.OriginalName.Contains(";rev=")),
+            .ToDictionary(g => g.FirstOrDefault(api => !api.OriginalName.Contains(";rev="), g.First()),
                 g => g.Where(api => api.OriginalName.Contains(";rev=")).ToList());
         foreach (var revisionGroup in revisionGroups)
         {
