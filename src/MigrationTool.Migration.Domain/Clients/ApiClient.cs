@@ -63,7 +63,7 @@ public class ApiClient : ClientBase
 
     public async Task<IReadOnlyCollection<Entity>> FetchAllApisAndVersionSets()
     {
-        var apis = await this.ApisClient.GetAllCurrentAsync(this.ExtractorParameters);
+        var apis = await this.ApisClient.GetAllAsync(this.ExtractorParameters);
 
         return await this.ProcessApiData(apis);
     }
@@ -71,7 +71,11 @@ public class ApiClient : ClientBase
     public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)
     {
         var revisions = await this.ApiRevisionClient.GetApiRevisionsAsync(apiId, this.ExtractorParameters);
-        return revisions.ConvertAll(api => new Entity(api.ApiId, EntityType.Api, api.ApiRevision, null));
+        var revisionIds = revisions.ConvertAll(_ => _.ApiId).ToHashSet();
+        var apis = await this.ApisClient.GetAllAsync(this.ExtractorParameters, true);
+        return apis.Where(api => revisionIds.Contains(api.Name))
+            .Select(api => new Entity(api.Name, EntityType.Api, api.Properties.DisplayName, api))
+            .ToList();
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchProducts(string entityId)

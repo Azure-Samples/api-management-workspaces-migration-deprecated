@@ -8,7 +8,6 @@ public class PolicyModifier
 {
     private static readonly Regex IncludeFragmentFinder =
         new Regex("<include-fragment\\s*fragment-id=\"([^\"]*)\"\\s*/>");
-
     private static readonly Regex NamedValueFinder = new Regex("{{([^{}]*)}}");
 
     private readonly EntitiesRegistry registry;
@@ -25,10 +24,10 @@ public class PolicyModifier
         return policy;
     }
 
-    private string ModifyNamedValues(string policy) => 
+    private string ModifyNamedValues(string policy) =>
         this.ModifyPolicy(policy, IncludeFragmentFinder, EntityType.PolicyFragment);
 
-    private string ModifyIncludePolicyFragment(string policy) => 
+    private string ModifyIncludePolicyFragment(string policy) =>
         this.ModifyPolicy(policy, NamedValueFinder, EntityType.NamedValue);
 
     private string ModifyPolicy(string policy, Regex regex, EntityType entityType)
@@ -38,8 +37,9 @@ public class PolicyModifier
             var matchGroup = match.Groups[1];
             if (this.registry.TryGetMapping(entityType, matchGroup.Value, out var entity))
             {
-                policy = policy.Remove(matchGroup.Index, matchGroup.Length);
-                policy = policy.Insert(matchGroup.Index, ((NamedValueTemplateResource)entity.ArmTemplate).Properties.DisplayName);
+                policy = policy
+                    .Remove(matchGroup.Index, matchGroup.Length)
+                    .Insert(matchGroup.Index, ((NamedValueTemplateResource)entity.ArmTemplate).Properties.DisplayName);
             }
         }
 

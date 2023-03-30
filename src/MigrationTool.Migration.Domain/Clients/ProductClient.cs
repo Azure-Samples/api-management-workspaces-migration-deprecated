@@ -48,15 +48,12 @@ namespace MigrationTool.Migration.Domain.Clients
 
         public async Task<IReadOnlyCollection<Entity>> FetchApis(string entityId)
         {
-            var (azToken, azSubId) = await this.Auth.GetAccessToken();
-            string requestUrl = string.Format(GetAllApisLinkedToProductRequest,
-                this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-                entityId, GlobalConstants.ApiVersion);
-            var apis = await this.GetPagedResponseAsync<ApiTemplateResource>(azToken, requestUrl);
-            this.ApiDataProcessor.ProcessData(apis);
-
-
-            return await this.ProcessApiData(apis);
+            var allApis = await this.ApisClient.GetAllAsync(this.ExtractorParameters);
+            var processedApis = this.CreateApiEntities(allApis);
+            
+            var productApis = await this.ApisClient.GetAllLinkedToProductAsync(entityId, this.ExtractorParameters);
+            var productApisSet = productApis.Select(api => api.OriginalName).ToHashSet();
+            return processedApis.Where(api => productApisSet.Contains(api.Id)).ToList();
         }
 
         public async Task<string?> FetchPolicy(string entityId)
