@@ -56,7 +56,7 @@ public class SubscriptionClient : ClientBase
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
         request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
         
-        var response = await this.CallApiManagementAsync(azToken, request);
+        var response = await this.GetResponseBodyAsync(azToken, request);
         var armTemplate = response.Deserialize<SubscriptionsTemplateResource>();
         return new Entity(armTemplate.Name, EntityType.Subscription, armTemplate.Properties.displayName, armTemplate);
     }

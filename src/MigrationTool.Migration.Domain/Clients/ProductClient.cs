@@ -79,7 +79,7 @@ namespace MigrationTool.Migration.Domain.Clients
                 workspace, resource.Name, GlobalConstants.ApiVersion);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
-            var response = await this.CallApiManagementAsync(azToken, request);
+            var response = await this.GetResponseBodyAsync(azToken, request);
             var armTemplate = response.Deserialize<ProductApiTemplateResource>();
             return new Entity(armTemplate.Name, EntityType.Product, armTemplate.Properties.DisplayName, armTemplate);
         }

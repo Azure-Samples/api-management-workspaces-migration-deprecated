@@ -1,9 +1,11 @@
-﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiOperations;
+﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Abstractions;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiOperations;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Extensions;
 using MigrationTool.Migration.Domain.Operations;
+using Newtonsoft.Json.Linq;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
 
@@ -28,9 +30,16 @@ public class ApiCopyOperationHandler : OperationHandler
         var copyOperation = this.GetOperationOrThrow<CopyOperation>(operation);
         var originalEntity = copyOperation.Entity;
 
-        var newTemplate = ModifyTemplate(workspaceId, (ApiTemplateResource)originalEntity.ArmTemplate);
+        var openApiDef = await this.apiClient.ExportOpenApiDefinition(originalEntity.Id);
 
-        var newApi = await this.apiClient.Create(newTemplate, workspaceId);
+        var json = JObject.Parse(openApiDef);
+        var requestPayload = new JObject();
+        requestPayload["properties"] = json;
+        requestPayload["properties"]["path"] = $"{template.Properties.Path}-in-{workspaceId}";
+        requestPayload["properties"]["value"]["info"]["title"] = $"{template.Properties.DisplayName}-in-{workspaceId}";
+
+        var newApi = await this.apiClient.ImportOpenApiDefinition(requestPayload.ToString(), $"{template.Name}-in-{workspaceId}", workspaceId);
+
         this.registry.RegisterMapping(originalEntity, newApi);
 
         var apiPolicy = await this.apiClient.FetchPolicy(originalEntity.Id);
@@ -42,13 +51,11 @@ public class ApiCopyOperationHandler : OperationHandler
 
         foreach (var originalOperation in await this.apiClient.FetchOperations(originalEntity.Id))
         {
-            var operationTemplate = (ApiOperationTemplateResource)originalOperation.ArmTemplate;
-            var newOperation = await this.apiClient.CreateOperation(newApi.Id, operationTemplate, workspaceId);
             var policy = await this.apiClient.FetchOperationPolicy(originalEntity.Id, originalOperation.Id);
             if (policy != null)
             {
                 var modifiedPolicy = this.policyModifier.Modify(policy);
-                await this.apiClient.UploadApiOperationPolicy(newApi.Id, newOperation.Id, modifiedPolicy, workspaceId);
+                await this.apiClient.UploadApiOperationPolicy(newApi.Id, originalOperation.Id, modifiedPolicy, workspaceId);
             }
         }
     }

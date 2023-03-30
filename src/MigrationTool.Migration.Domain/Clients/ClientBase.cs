@@ -3,11 +3,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Apis;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Abstractions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
-//using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using MigrationTool.Migration.Domain.Entities;
 
@@ -34,15 +31,23 @@ public class ClientBase : ApiClientBase
         this.HttpClient = httpClientFactory.CreateClient();
     }
 
-    protected async Task<string> CallApiManagementAsync(String azToken, HttpRequestMessage request)
+    protected async Task<string> GetResponseBodyAsync(String azToken, HttpRequestMessage request)
+    {
+        var response = await this.CallApiManagementAsync(azToken, request);
+
+        string responseBody = await response.Content.ReadAsStringAsync();
+        return responseBody;
+    }
+
+    protected async Task<HttpResponseMessage> CallApiManagementAsync(String azToken, HttpRequestMessage request)
     {
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", azToken);
         HttpResponseMessage response = await this.HttpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
-        string responseBody = await response.Content.ReadAsStringAsync();
-        return responseBody;
+        return response;
     }
+
 
     protected async Task UploadPolicy(string requestUrl, string policy)
     {

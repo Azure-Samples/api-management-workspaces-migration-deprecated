@@ -27,7 +27,7 @@ public class VersionSetClient : ClientBase
         IHttpClientFactory httpClientFactory,
         IApiDataProcessor apiDataProcessor
         )
-        : base(httpClientFactory, extractorParameters, apiDataProcessor, apiRevisionClient)
+        : base(httpClientFactory, extractorParameters)
     {
         this.ApiClient = apiClient;
     }
@@ -70,7 +70,7 @@ public class VersionSetClient : ClientBase
         versionSetTemplate.Properties.DisplayName = modifier(versionSetTemplate.Properties.DisplayName);
 
         request.Content = JsonContent.Create<ApiVersionSetTemplateResource>(versionSetTemplate, options: DefaultSerializerOptions);
-        var response = await this.CallApiManagementAsync(azToken, request);
+        var response = await this.GetResponseBodyAsync(azToken, request);
         var armTemplate = response.Deserialize<ApiVersionSetTemplateResource>();
         return new VersionSetEntity(newFullId, armTemplate.Properties.DisplayName, armTemplate);
     }
