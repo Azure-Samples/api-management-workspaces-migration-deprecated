@@ -45,7 +45,6 @@ public class ClientBase : ApiClientBase
         await this.CallApiManagementAsync(azToken, request);
     }
 
-
     protected async Task<IReadOnlyCollection<Entity>> RemoveUnsupportedApis(List<ApiTemplateResource> apis, IApiRevisionClient apiRevisionClient)
     {
         apis = apis.FindAll(api => api.Properties.ApiVersionSetId == null); //remove apis with versions
