@@ -1,8 +1,10 @@
-﻿using CommandLine;
+﻿using System.ComponentModel;
+using CommandLine;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Commands.Configurations;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Extensions.DependencyInjection;
+using MigrationTool;
 using MigrationTool.Migration.Domain;
 using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Dependencies;
@@ -17,14 +19,14 @@ using MigrationTool.Migration.Domain.Operations;
 public class Program
 {
     public static IServiceProvider ServiceProvider;
-
+    public static WaitSpinner spinner;
 
     public static async Task Main(string[] args)
     {
+        spinner = new WaitSpinner();
         await Parser.Default.ParseArguments<MigrationProgramConfig>(args).WithParsedAsync(MigrationProgram);
+        spinner.Dispose();
     }
-
-
     public static async Task MigrationProgram(MigrationProgramConfig config)
     {
         ServiceProvider = CreateServiceProvider(config);
@@ -40,15 +42,19 @@ public class Program
 
         var dependencyGraphBuilder = ServiceProvider.GetRequiredService<DependencyGraphBuilder>();
         Console.WriteLine("Fetching dependencies...");
-        var graph = await dependencyGraphBuilder.Build(apis);
+
+        var graph = await LongRunning(() => dependencyGraphBuilder.Build(apis));
         Console.WriteLine("Building migration plan...");
         var plan = MigrationPlanner.Plan(graph, MigrationType.Copy);
+
         Console.WriteLine(plan);
         if (Prompt.Confirm("Confirm migration plan?"))
         {
             var executor = ServiceProvider.GetRequiredService<MigrationPlanExecutor>();
             Console.WriteLine($"Migrating...");
-            await executor.Execute(plan, workspace);
+
+            await LongRunning(() => executor.Execute(plan, workspace));
+
             Console.WriteLine($"Migration successful");
         }
     }
@@ -56,7 +62,7 @@ public class Program
     private static async Task<IEnumerable<Entity>> ChooseApis()
     {
         var apisClient = ServiceProvider.GetRequiredService<ApiClient>();
-        var apis = await apisClient.FetchAllApisAndVersionSets();
+        var apis = await LongRunning(() => apisClient.FetchAllApisAndVersionSets());
         var selected = Prompt.MultiSelect("Select apis to migrate", apis);
 
         HashSet<Entity> versionedApis = new HashSet<Entity>();
@@ -77,10 +83,25 @@ public class Program
     private static async Task<string?> ChooseWorkspace()
     {
         var workspaceService = ServiceProvider.GetRequiredService<WorkspaceClient>();
-        var workspaces = await workspaceService.FetchAll();
+        var workspaces = await LongRunning(() => workspaceService.FetchAll());
         if (workspaces.Count > 0)
             return Prompt.Select("To which workspace you want to migrate?", workspaces);
         return null;
+    }
+
+    private static async Task LongRunning(Func<Task> task)
+    {
+        spinner.Start();
+        await task();
+        spinner.Stop();
+    }
+
+    private static async Task<T> LongRunning<T>(Func<Task<T>> task)
+    {
+        spinner.Start();
+        var result = await task();
+        spinner.Stop();
+        return result;
     }
 
     private static IServiceProvider CreateServiceProvider(MigrationProgramConfig config)
