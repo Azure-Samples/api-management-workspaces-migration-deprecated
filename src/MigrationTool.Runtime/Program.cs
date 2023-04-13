@@ -15,6 +15,8 @@ using MigrationTool.Migration.Domain.Executor.Operations;
 using MigrationTool.Migration.Domain.Planner;
 using Sharprompt;
 using MigrationTool.Migration.Domain.Operations;
+using System.Configuration;
+using Sharprompt.Fluent;
 
 public class Program
 {
@@ -30,32 +32,32 @@ public class Program
     public static async Task MigrationProgram(MigrationProgramConfig config)
     {
         ServiceProvider = CreateServiceProvider(config);
-        Console.WriteLine("Fetching apis...");
+        Console.WriteLine(ConfigurationManager.AppSettings["apiFetching"]);
         var apis = await ChooseApis();
-        Console.WriteLine("Fetching workspaces...");
+        Console.WriteLine(ConfigurationManager.AppSettings["workspaceFetching"]);
         var workspace = await ChooseWorkspace();
         if (workspace == null)
         {
-            Console.WriteLine($"No workspaces");
+            Console.WriteLine(ConfigurationManager.AppSettings["workspaceMissing"]);
             return;
         }
 
-        var dependencyGraphBuilder = ServiceProvider.GetRequiredService<DependencyGraphBuilder>();
-        Console.WriteLine("Fetching dependencies...");
+        var dependencyGraphBuilder = ServiceProvider.GetRequiredService<DependencyGraphBuilder>(); 
+        Console.WriteLine(ConfigurationManager.AppSettings["dependenciesFetching"]);
 
-        var graph = await LongRunning(() => dependencyGraphBuilder.Build(apis));
-        Console.WriteLine("Building migration plan...");
+        var graph = await LongRunning(() => dependencyGraphBuilder.Build(apis)); 
+        Console.WriteLine(ConfigurationManager.AppSettings["migrationPlanBuilding"]);
         var plan = MigrationPlanner.Plan(graph, MigrationType.Copy);
 
-        Console.WriteLine(plan);
-        if (Prompt.Confirm("Confirm migration plan?"))
+        Console.WriteLine(plan); 
+        if (Prompt.Confirm(ConfigurationManager.AppSettings["migrationPlanConfirmation"]))
         {
             var executor = ServiceProvider.GetRequiredService<MigrationPlanExecutor>();
-            Console.WriteLine($"Migrating...");
+            Console.WriteLine(ConfigurationManager.AppSettings["migrationOnGoing"]); 
 
             await LongRunning(() => executor.Execute(plan, workspace));
 
-            Console.WriteLine($"Migration successful");
+            Console.WriteLine(ConfigurationManager.AppSettings["migrationDone"]);
         }
     }
 
@@ -63,7 +65,7 @@ public class Program
     {
         var apisClient = ServiceProvider.GetRequiredService<ApiClient>();
         var apis = await LongRunning(() => apisClient.FetchAllApisAndVersionSets());
-        var selected = Prompt.MultiSelect("Select apis to migrate", apis);
+        var selected = Prompt.MultiSelect(ConfigurationManager.AppSettings["apiSelection"], apis);
 
         HashSet<Entity> versionedApis = new HashSet<Entity>();
         selected.Where(item => item.Type == EntityType.VersionSet).ToList().ForEach(versionSet =>
@@ -71,13 +73,10 @@ public class Program
             versionedApis.UnionWith(((VersionSetEntity)versionSet).Apis);
         });
 
-        //selected
-        //selected.Append(versionedApis);
         List<Entity> allApis = new List<Entity>(); 
         allApis.AddRange(selected.Where(item => item.Type == EntityType.Api));
         allApis.AddRange(versionedApis);
         return allApis;
-        //return selected;
     }
 
     private static async Task<string?> ChooseWorkspace()
@@ -85,7 +84,7 @@ public class Program
         var workspaceService = ServiceProvider.GetRequiredService<WorkspaceClient>();
         var workspaces = await LongRunning(() => workspaceService.FetchAll());
         if (workspaces.Count > 0)
-            return Prompt.Select("To which workspace you want to migrate?", workspaces);
+            return Prompt.Select(ConfigurationManager.AppSettings["workspaceSelection"], workspaces);
         return null;
     }
 
