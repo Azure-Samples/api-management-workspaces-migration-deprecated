@@ -14,10 +14,12 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
     // private static readonly Regex workspaceRegex = new Regex("^/workspaces/(.+)/policies/policy$");
 
     private readonly NamedValuesClient namedValuesClient;
+    private readonly ApiClient apiClient;
 
-    public NamedValueDependencyResolver(NamedValuesClient namedValuesClient)
+    public NamedValueDependencyResolver(NamedValuesClient namedValuesClient, ApiClient apiClient)
     {
         this.namedValuesClient = namedValuesClient;
+        this.apiClient = apiClient;
     }
 
     public EntityType Type => EntityType.NamedValue;
@@ -31,7 +33,8 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
         var result = new List<Entity>();
         foreach (var id in ids)
         {
-            if (this.TryMatchEntity(id, out var dependency))
+            var dependency = await this.TryMatchEntity(id);
+            if (dependency != null)
             {
                 result.Add(dependency);
             }
@@ -40,7 +43,7 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
         return result;
     }
 
-    private bool TryMatchEntity(string id, [MaybeNullWhen(false)] out Entity entity)
+    private async Task<Entity> TryMatchEntity(string id)
     {
         // var match = globalRegex.Match(id);
         // if (match.Success)
@@ -55,30 +58,35 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
         //     entity = new Entity(match.Groups[1].Value, EntityType.Workspace);
         //     return true;
         // }
+
+        Entity entity = null;
         
         var match = apiOperationRegex.Match(id);
         if (match.Success)
         {
-            entity = new Entity(match.Groups[1].Value, EntityType.Api);
-            return true;
+            var all = await this.apiClient.FetchAllApisFlat();
+            entity = all.Where(api => api.Id.Equals(match.Groups[1].Value)).First();
+            //entity = new Entity(match.Groups[1].Value, EntityType.Api);
+            return entity;
         }
         
         match = apiRegex.Match(id);
         if (match.Success)
         {
-            entity = new Entity(match.Groups[1].Value, EntityType.Api);
-            return true;
+            var all = await this.apiClient.FetchAllApisFlat();
+            entity = all.Where(api => api.Id.Equals(match.Groups[1].Value)).First();
+            //entity = new Entity(match.Groups[1].Value, EntityType.Api);
+            return entity;
         }
         
         match = productRegex.Match(id);
         if (match.Success)
         {
             entity = new Entity(match.Groups[1].Value, EntityType.Product);
-            return true;
+            return entity;
         }
         
-        entity = null;
-        return false;
+        return entity;
         
     }
 }
