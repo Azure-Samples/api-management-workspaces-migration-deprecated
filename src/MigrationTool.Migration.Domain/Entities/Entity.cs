@@ -1,4 +1,6 @@
 ﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Abstractions;
+using MigrationTool.Migration.Domain.Extensions;
+using System.Configuration;
 
 namespace MigrationTool.Migration.Domain.Entities;
 
@@ -24,7 +26,13 @@ public class Entity : IEquatable<Entity>
     }
 
     public override string ToString()
-        => $"{this.Type}: {this.DisplayName} ({this.Id})";
+    {
+        var toString = ConfigurationManager.AppSettings["entityToString"];
+        toString = toString.Replace("{type}", this.Type.GetDescription());
+        toString = toString.Replace("{displayName}", this.DisplayName);
+        toString = toString.Replace("{id}", this.Id);
+        return toString;
+    }
 
     public override int GetHashCode()
         => HashCode.Combine(this.Id, (int)this.Type);
