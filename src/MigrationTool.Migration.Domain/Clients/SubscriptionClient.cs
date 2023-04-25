@@ -41,7 +41,6 @@ public class SubscriptionClient : ClientBase
         var response = await this.GetPagedResponseAsync<SubscriptionsTemplateResource>(azToken, requestUrl);
 
         return response
-            .Where(s => !s.Properties.ownerId.EndsWith("/users/1")) // skip subscription for admin user
             .Select(s => new Entity(s.Name, EntityType.Subscription, s.Properties.displayName, s))
             .ToList();
     }
@@ -56,7 +55,7 @@ public class SubscriptionClient : ClientBase
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
         request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
         
-        var response = await this.CallApiManagementAsync(azToken, request);
+        var response = await this.GetResponseBodyAsync(azToken, request);
         var armTemplate = response.Deserialize<SubscriptionsTemplateResource>();
         return new Entity(armTemplate.Name, EntityType.Subscription, armTemplate.Properties.displayName, armTemplate);
     }

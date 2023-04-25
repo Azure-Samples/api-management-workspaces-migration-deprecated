@@ -8,8 +8,8 @@ namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 public class NamedValueDependencyResolver : IEntityDependencyResolver
 {
     // private static readonly Regex globalRegex = new Regex("^/policies/policy$");
-    private static readonly Regex apiRegex = new Regex("^/apis/(.+);rev=\\d+/policies/policy$");
-    private static readonly Regex apiOperationRegex = new Regex("^/apis/(.+);rev=\\d+/operations/(.+)/policies/policy$");
+    private static readonly Regex apiRegex = new Regex("^/apis/(.+);rev=(.+)/policies/policy$");
+    private static readonly Regex apiOperationRegex = new Regex("^/apis/(.+);rev=(.+)/operations/(.+)/policies/policy$");
     private static readonly Regex productRegex = new Regex("^/product/(.+)/policies/policy$");
     // private static readonly Regex workspaceRegex = new Regex("^/workspaces/(.+)/policies/policy$");
 

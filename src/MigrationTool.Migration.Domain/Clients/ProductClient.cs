@@ -48,16 +48,12 @@ namespace MigrationTool.Migration.Domain.Clients
 
         public async Task<IReadOnlyCollection<Entity>> FetchApis(string entityId)
         {
-            //var apis = await this.ApisClient.GetAllLinkedToProductAsync(entityId, this.ExtractorParameters); // <<< to be used when revisions and versions will be supported
-            var (azToken, azSubId) = await this.Auth.GetAccessToken();
-            string requestUrl = string.Format(GetAllApisLinkedToProductRequest,
-                this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-                entityId, GlobalConstants.ApiVersion);
-            var apis = await this.GetPagedResponseAsync<ApiTemplateResource>(azToken, requestUrl);
-            this.ApiDataProcessor.ProcessData(apis);
-
-
-            return await this.RemoveUnsupportedApis(apis, this.ApiRevisionClient);
+            var allApis = await this.ApisClient.GetAllAsync(this.ExtractorParameters);
+            var processedApis = this.CreateApiEntities(allApis);
+            
+            var productApis = await this.ApisClient.GetAllLinkedToProductAsync(entityId, this.ExtractorParameters);
+            var productApisSet = productApis.Select(api => api.OriginalName).ToHashSet();
+            return processedApis.Where(api => productApisSet.Contains(api.Id)).ToList();
         }
 
         public async Task<string?> FetchPolicy(string entityId)
@@ -80,7 +76,7 @@ namespace MigrationTool.Migration.Domain.Clients
                 workspace, resource.Name, GlobalConstants.ApiVersion);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
-            var response = await this.CallApiManagementAsync(azToken, request);
+            var response = await this.GetResponseBodyAsync(azToken, request);
             var armTemplate = response.Deserialize<ProductApiTemplateResource>();
             return new Entity(armTemplate.Name, EntityType.Product, armTemplate.Properties.DisplayName, armTemplate);
         }

@@ -7,31 +7,49 @@ public class ApiDependencyResolver : IEntityDependencyResolver
 {
     private readonly ApiClient apiClient;
     private readonly SubscriptionClient subscriptionClient;
+    private readonly VersionSetClient versionSetClient;
 
     private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
 
     public ApiDependencyResolver(ApiClient apiClient,
         SubscriptionClient subscriptionClient,
-        PolicyRelatedDependenciesResolver policyDependenciesResolver)
+        PolicyRelatedDependenciesResolver policyDependenciesResolver,
+        VersionSetClient versionSetClient)
     {
         this.apiClient = apiClient;
         this.subscriptionClient = subscriptionClient;
         this.policyDependenciesResolver = policyDependenciesResolver;
+        this.versionSetClient = versionSetClient;
     }
 
     public EntityType Type => EntityType.Api;
 
     public async Task<IReadOnlyCollection<Entity>> ResolveDependencies(Entity entity)
     {
-        if (this.Type != entity.Type) throw new Exception();
+        if (this.Type != entity.Type || entity is not ApiEntity apiEntity) throw new Exception();
 
         var dependencies = new HashSet<Entity>();
 
-        dependencies.UnionWith(await this.ResolveProducts(entity));
-        dependencies.UnionWith(await this.ResolveTags(entity));
-        dependencies.UnionWith(await this.ResolveApiOperationsRelatedDependencies(entity));
-        dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(entity));
-        dependencies.UnionWith(await this.ResolveSubscriptions(entity));
+        dependencies.UnionWith(await this.ResolveProducts(apiEntity));
+        dependencies.UnionWith(await this.ResolveTags(apiEntity));
+        dependencies.UnionWith(await this.ResolveApiOperationsRelatedDependencies(apiEntity));
+        dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(apiEntity));
+        dependencies.UnionWith(await this.ResolveSubscriptions(apiEntity));
+        dependencies.UnionWith(await this.ResolveRevisionDependencies(apiEntity));
+        dependencies.UnionWith(await this.ResolveVersionSetDependencies(apiEntity));
+
+        return dependencies;
+    }
+
+    async Task<IEnumerable<Entity>> ResolveRevisionDependencies(ApiEntity entity)
+    {
+        var dependencies = new HashSet<Entity>();
+        foreach (var revision in entity.Revisions)
+        {
+            dependencies.UnionWith(await this.ResolveTags(revision));
+            dependencies.UnionWith(await this.ResolveApiOperationsRelatedDependencies(revision));
+            dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(revision));
+        }
 
         return dependencies;
     }
@@ -66,6 +84,14 @@ public class ApiDependencyResolver : IEntityDependencyResolver
         var policy = await this.apiClient.FetchPolicy(entity.Id);
         if (policy != null)
             return await this.policyDependenciesResolver.Resolve(policy);
+        return new List<Entity>();
+    }
+
+    async Task<IReadOnlyCollection<Entity>> ResolveVersionSetDependencies(Entity entity)
+    {
+        var versionSet = await this.versionSetClient.FetchVersionSet(entity);
+        if (versionSet != null)
+            return new List<Entity>() { versionSet };
         return new List<Entity>();
     }
 }

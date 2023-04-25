@@ -2,8 +2,10 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using MigrationTool.Migration.Domain.Entities;
 
@@ -11,6 +13,9 @@ namespace MigrationTool.Migration.Domain.Clients;
 
 public class ClientBase : ApiClientBase
 {
+    const string GetVersionSetsRequest = "{0}{1}?api-version={2}";
+
+    protected readonly IApiRevisionClient ApiRevisionClient;
     protected readonly ExtractorParameters ExtractorParameters;
     protected readonly HttpClient HttpClient;
 
@@ -27,15 +32,23 @@ public class ClientBase : ApiClientBase
         this.HttpClient = httpClientFactory.CreateClient();
     }
 
-    protected async Task<string> CallApiManagementAsync(String azToken, HttpRequestMessage request)
+    protected async Task<string> GetResponseBodyAsync(String azToken, HttpRequestMessage request)
+    {
+        var response = await this.CallApiManagementAsync(azToken, request);
+
+        string responseBody = await response.Content.ReadAsStringAsync();
+        return responseBody;
+    }
+
+    protected async Task<HttpResponseMessage> CallApiManagementAsync(String azToken, HttpRequestMessage request)
     {
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", azToken);
         HttpResponseMessage response = await this.HttpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
-        string responseBody = await response.Content.ReadAsStringAsync();
-        return responseBody;
+        return response;
     }
+
 
     protected async Task UploadPolicy(string requestUrl, string policy)
     {
@@ -45,21 +58,67 @@ public class ClientBase : ApiClientBase
         await this.CallApiManagementAsync(azToken, request);
     }
 
-    protected async Task<IReadOnlyCollection<Entity>> RemoveUnsupportedApis(List<ApiTemplateResource> apis, IApiRevisionClient apiRevisionClient)
+
+    protected async Task<IReadOnlyCollection<Entity>> ProcessApiData(List<ApiTemplateResource> apis)
     {
-        apis = apis.FindAll(api => api.Properties.ApiVersionSetId == null); //remove apis with versions
-        List<ApiTemplateResource> apisWithoutRevisions = new List<ApiTemplateResource>();
-        foreach (var api in apis)
+        var apisWithRevisions = this.CreateApiEntities(apis);
+        var apisWithoutVersionSet = this.ApisWithoutVersionSet(apisWithRevisions);
+        var versionSets = await this.CreateVersionSets(apisWithRevisions);
+
+        List<Entity> processed = new List<Entity>();
+        processed.AddRange(versionSets);
+        processed.AddRange(apisWithoutVersionSet);
+        return processed;
+    }
+
+    List<ApiEntity> ApisWithoutVersionSet(List<ApiEntity> apisWithRevisions) =>
+        apisWithRevisions.FindAll(api => api.ArmTemplate.Properties.ApiVersionSetId == null);
+
+    async Task<List<VersionSetEntity>> CreateVersionSets(List<ApiEntity> apisWithRevisions)
+    {
+        List<VersionSetEntity> processed = new List<VersionSetEntity>();
+        var versionedApis = apisWithRevisions
+            .FindAll(api => api.ArmTemplate.Properties.ApiVersionSetId != null)
+            .GroupBy(api => api.ArmTemplate.Properties.ApiVersionSetId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
+        foreach (var group in versionedApis)
         {
-            var apiRevisions =
-                await apiRevisionClient.GetApiRevisionsAsync(api.OriginalName, this.ExtractorParameters);
-            if (apiRevisions.Count == 1)
-            {
-                apisWithoutRevisions.Add(api);
-            }
+            var versionSetId = group.Value.First().ArmTemplate.Properties.ApiVersionSetId;
+            var (azToken, azSubId) = await this.Auth.GetAccessToken();
+
+            string requestUrl = string.Format(GetVersionSetsRequest,
+                this.BaseUrl, versionSetId, GlobalConstants.ApiVersion);
+
+            var apiVersionSetTemplateResource =
+                await this.GetResponseAsync<ApiVersionSetTemplateResource>(azToken, requestUrl);
+            var versionSet = new VersionSetEntity(versionSetId, apiVersionSetTemplateResource.Properties.DisplayName,
+                apiVersionSetTemplateResource);
+
+            versionSet.Apis = group.Value;
+
+            processed.Add(versionSet);
         }
 
-        return apisWithoutRevisions.ConvertAll(api =>
-            new Entity(api.OriginalName, EntityType.Api, api.Properties.DisplayName, api));
+        return processed;
+    }
+
+    protected List<ApiEntity> CreateApiEntities(List<ApiTemplateResource> apis)
+    {
+        List<ApiEntity> apisWithRevisions = new List<ApiEntity>();
+        var regex = new Regex("^(.*);rev=.+$");
+        var revisionGroups = apis.GroupBy(api => regex.Match(api.Name).Groups[1].Value)
+            .ToDictionary(g => g.FirstOrDefault(api => !api.OriginalName.Contains(";rev="), g.First()),
+                g => g.Where(api => api.OriginalName.Contains(";rev=")).ToList());
+        foreach (var revisionGroup in revisionGroups)
+        {
+            var api = revisionGroup.Key;
+            var apiEntity = new ApiEntity(api.OriginalName, api.Properties.DisplayName, api);
+            apiEntity.Revisions =
+                revisionGroup.Value.ConvertAll(a => new ApiEntity(a.Name, a.Properties.DisplayName, a));
+            apisWithRevisions.Add(apiEntity);
+        }
+
+        return apisWithRevisions;
     }
 }
