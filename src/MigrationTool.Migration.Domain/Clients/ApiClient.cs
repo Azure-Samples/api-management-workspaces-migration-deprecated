@@ -57,11 +57,11 @@ public class ApiClient : ClientBase
         this.PolicyClient = policyClient;
     }
 
-    public async Task<IReadOnlyCollection<Entity>> FetchAllApisAndVersionSets()
+    public async Task<IReadOnlyCollection<Entity>> FetchAllApis()
     {
         var apis = await this.ApisClient.GetAllAsync(this.ExtractorParameters);
 
-        return await this.ProcessApiData(apis);
+        return await this.RemoveUnsupportedApis(apis, this.ApiRevisionClient);
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)

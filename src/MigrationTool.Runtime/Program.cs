@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using CommandLine;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Commands.Configurations;
@@ -8,10 +8,8 @@ using MigrationTool;
 using MigrationTool.Migration.Domain;
 using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Dependencies;
-using MigrationTool.Migration.Domain.Dependencies.Resolvers;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Executor;
-using MigrationTool.Migration.Domain.Executor.Operations;
 using MigrationTool.Migration.Domain.Planner;
 using Sharprompt;
 using MigrationTool.Migration.Domain.Operations;
