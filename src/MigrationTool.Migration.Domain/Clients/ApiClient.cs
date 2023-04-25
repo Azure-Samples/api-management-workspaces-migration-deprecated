@@ -28,12 +28,12 @@ public class ApiClient : ClientBase
     const string DeleteApiRequest =
         "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/apis/{4}?api-version={5}";
 
-    const string ExportApiRequest = 
+    const string ExportApiRequest =
         "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/apis/{4}?export=true&format=openapi%2Bjson&api-version={5}";
 
     const string ImportApiRequest = "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/apis/{5}?import=true&api-version={6}";
-        
-        
+
+
 
 
     private readonly IApisClient ApisClient;
@@ -57,11 +57,11 @@ public class ApiClient : ClientBase
         this.PolicyClient = policyClient;
     }
 
-    public async Task<IReadOnlyCollection<Entity>> FetchAllApis()
+    public async Task<IReadOnlyCollection<Entity>> FetchAllApisAndVersionSets()
     {
         var apis = await this.ApisClient.GetAllAsync(this.ExtractorParameters);
 
-        return await this.RemoveUnsupportedApis(apis, this.ApiRevisionClient);
+        return await this.ProcessApiData(apis);
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)
@@ -151,7 +151,8 @@ public class ApiClient : ClientBase
                 string responseBody = await isReady.Content.ReadAsStringAsync();
                 var armTemplate = responseBody.Deserialize<ApiTemplateResource>();
                 newApi = new Entity(armTemplate.Name, EntityType.Api, armTemplate.Properties.DisplayName, armTemplate);
-            } else
+            }
+            else
             {
                 Thread.Sleep(100);
             }

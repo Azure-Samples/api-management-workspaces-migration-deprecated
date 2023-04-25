@@ -15,6 +15,8 @@ using Sharprompt;
 using MigrationTool.Migration.Domain.Operations;
 using System.Configuration;
 using Sharprompt.Fluent;
+using MigrationTool.Migration.Domain.Dependencies.Resolvers;
+using MigrationTool.Migration.Domain.Executor.Operations;
 
 public class Program
 {

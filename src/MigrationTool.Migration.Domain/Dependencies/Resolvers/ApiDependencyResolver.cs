@@ -7,16 +7,19 @@ public class ApiDependencyResolver : IEntityDependencyResolver
 {
     private readonly ApiClient apiClient;
     private readonly SubscriptionClient subscriptionClient;
+    private readonly VersionSetClient versionSetClient;
 
     private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
 
     public ApiDependencyResolver(ApiClient apiClient,
         SubscriptionClient subscriptionClient,
-        PolicyRelatedDependenciesResolver policyDependenciesResolver)
+        PolicyRelatedDependenciesResolver policyDependenciesResolver,
+        VersionSetClient versionSetClient)
     {
         this.apiClient = apiClient;
         this.subscriptionClient = subscriptionClient;
         this.policyDependenciesResolver = policyDependenciesResolver;
+        this.versionSetClient = versionSetClient;
     }
 
     public EntityType Type => EntityType.Api;

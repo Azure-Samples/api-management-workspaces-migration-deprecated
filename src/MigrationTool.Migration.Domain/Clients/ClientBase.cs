@@ -13,6 +13,9 @@ namespace MigrationTool.Migration.Domain.Clients;
 
 public class ClientBase : ApiClientBase
 {
+    const string GetVersionSetsRequest = "{0}{1}?api-version={2}";
+
+    protected readonly IApiRevisionClient ApiRevisionClient;
     protected readonly ExtractorParameters ExtractorParameters;
     protected readonly HttpClient HttpClient;
 
@@ -55,7 +58,8 @@ public class ClientBase : ApiClientBase
         await this.CallApiManagementAsync(azToken, request);
     }
 
-    protected async Task<IReadOnlyCollection<Entity>> RemoveUnsupportedApis(List<ApiTemplateResource> apis, IApiRevisionClient apiRevisionClient)
+
+    protected async Task<IReadOnlyCollection<Entity>> ProcessApiData(List<ApiTemplateResource> apis)
     {
         var apisWithRevisions = this.CreateApiEntities(apis);
         var apisWithoutVersionSet = this.ApisWithoutVersionSet(apisWithRevisions);
