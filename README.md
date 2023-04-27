@@ -58,7 +58,7 @@ Other dependent resources aren't currently supported but are planned for future 
 
 1. Select a workspace to migrate the resources to. 
 
-    The tool analyzes dependencies of selected APIs, like named values or subscriptions. See [Supported dependencies](#supported-dependencies) for the list of resources supported in the tool and [Roadmap] for the list of resources that are planned for future support. 
+    The tool analyzes dependencies of selected APIs, like named values or subscriptions. See [Supported dependencies](#supported-dependencies) for the list of resources supported in the tool and [Roadmap](#roadmap) for the list of resources that are planned for future support. 
     
     1. Manually check if your API uses any unsupported dependencies before attempting the migration; if it does, your API can't be fully migrated with the tool. 
 
@@ -72,13 +72,13 @@ Other dependent resources aren't currently supported but are planned for future 
 
     * If the dependency is used *only* by APIs that are being migrated to the workspace, the tool copies it to the workspace. In the future, the original resource on the service level will be deleted. While in preview, the tool keeps all the original resources for backup. 
 
-    * If the dependency is used also by other APIs and it's of a type that allows referencing a service-level resource from a workspace-level resource (that is, product or tag), this dependency along with all its dependencies (for example, subscription to a product or tag) will remain on the service level and the migrated API will reference it from a workspace. 
+    * If the dependency is used also by other APIs and it's of a type that allows referencing a service-level resource from a workspace-level resource (that is, product or tag), this dependency along with all of its dependencies (for example, subscription to a product or tag) will remain on the service level and the migrated API will reference it from a workspace. 
 
     * If the dependency is used also by other APIs and doesn't allow referencing a service-level resource from a workspace-level resource, this dependency will be copied to a workspace with a random hash appended to its name. 
 
 ## Clean up resources
 
-You can manually clean up the original resources and change the API URL suffix to enable a migrated API. This operation may cause several minutes of downtime for the migrated API.
+You can manually delete the original resources and change the API URL suffix to enable a migrated API. This operation may cause several minutes of downtime for the migrated API.
 
 In the future, after preview versions, the tool will automatically clean up resources: 
 
