@@ -1,5 +1,6 @@
 ﻿using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Entities;
+using MigrationTool.Migration.Domain.Exceptions;
 
 namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
