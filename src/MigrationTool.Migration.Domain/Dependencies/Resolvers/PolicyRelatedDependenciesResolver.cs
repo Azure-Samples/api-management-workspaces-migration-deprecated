@@ -8,10 +8,10 @@ namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 public class PolicyRelatedDependenciesResolver
 {
     private static readonly Regex IncludeFragmentFinder =
-        new Regex("<include-fragment\\s*fragment-id=\"([^\"]*)\"\\s*/>");
+        new Regex("<include-fragment.+?fragment-id=\"(.+?)\".+?/>");
 
     private static readonly Regex NamedValueFinder = new Regex("{{([^{}]*)}}");
-    private static readonly Regex BackendFinder = new Regex("<set-backend-service.*(backend-id|base-url)=\".*\".*\\/>");
+    private static readonly Regex BackendFinder = new Regex("<set-backend-service.+?(backend-id|base-url)=\".+?\".+?\\/>");
 
     private readonly NamedValuesClient namedValuesClient;
     private readonly PolicyFragmentsClient policyFragmentsClient;
