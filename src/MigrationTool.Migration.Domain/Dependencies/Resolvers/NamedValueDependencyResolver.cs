@@ -64,19 +64,13 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
         var match = apiOperationRegex.Match(id);
         if (match.Success)
         {
-            var all = await this.apiClient.FetchAllApisFlat();
-            entity = all.Where(api => api.Id.Equals(match.Groups[1].Value)).First();
-            //entity = new Entity(match.Groups[1].Value, EntityType.Api);
-            return entity;
+            return await this.getApiById(match.Groups[1].Value);
         }
         
         match = apiRegex.Match(id);
         if (match.Success)
         {
-            var all = await this.apiClient.FetchAllApisFlat();
-            entity = all.Where(api => api.Id.Equals(match.Groups[1].Value)).First();
-            //entity = new Entity(match.Groups[1].Value, EntityType.Api);
-            return entity;
+            return await this.getApiById(match.Groups[1].Value);
         }
         
         match = productRegex.Match(id);
@@ -88,5 +82,12 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
         
         return entity;
         
+    }
+
+    private async Task<Entity> getApiById(string id)
+    {
+
+        var all = await this.apiClient.FetchAllApisFlat();
+        return all.Where(api => api.Id.Equals(id)).First();
     }
 }
