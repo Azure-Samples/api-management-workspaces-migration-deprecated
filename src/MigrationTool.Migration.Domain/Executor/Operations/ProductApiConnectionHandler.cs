@@ -26,15 +26,15 @@ public class ProductApiConnectionHandler : OperationHandler
         Entity product;
         Entity api;
 
-        this.GetEntity(connectOperation, EntityType.Api, out api);
-        if (!this.GetEntity(connectOperation, EntityType.Product, out product))
+        this.tryGetNewEntity(connectOperation, EntityType.Api, out api);
+        if (!this.tryGetNewEntity(connectOperation, EntityType.Product, out product))
         {
             return this.productClient.AddApi(product, api, null, workspaceId);
         }
         return this.productClient.AddApi(product, api, workspaceId, workspaceId);
     }
 
-    private bool GetEntity(ConnectOperation connectOperation, EntityType entityType, out Entity entity)
+    private bool tryGetNewEntity(ConnectOperation connectOperation, EntityType entityType, out Entity entity)
     {
         var originalEntity = connectOperation.Entity.Type == entityType
             ? connectOperation.Entity
