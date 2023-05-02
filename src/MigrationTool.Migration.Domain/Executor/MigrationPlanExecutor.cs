@@ -5,6 +5,7 @@ namespace MigrationTool.Migration.Domain.Executor;
 
 public class MigrationPlanExecutor
 {
+    //private HashSet<Entity> copyRegistry = new HashSet<Entity>();
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<EntityType, OperationHandler>> handlers;
 
     public MigrationPlanExecutor(IEnumerable<OperationHandler> handlers)
@@ -27,4 +28,14 @@ public class MigrationPlanExecutor
             await handler.Handle(operation, workspaceId);
         }
     }
+
+    //public void RegisterForCopy(Entity entity)
+    //{
+    //    this.copyRegistry.Add(entity);
+    //}
+
+    //public bool IsRegistered(Entity entity)
+    //{
+    //    return this.copyRegistry.Contains(entity);
+    //}
 }
