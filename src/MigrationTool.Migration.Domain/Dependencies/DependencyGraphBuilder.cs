@@ -1,4 +1,7 @@
 ﻿using MigrationTool.Migration.Domain.Entities;
+using MigrationTool.Migration.Domain.Exceptions;
+using MigrationTool.Migration.Domain.Extensions;
+using System.Configuration;
 
 namespace MigrationTool.Migration.Domain.Dependencies;
 
@@ -28,7 +31,20 @@ public class DependencyGraphBuilder
             if (!visited.Add(entity))
                 continue;
 
-            var dependencies = await this.dependencyService.ResolveDependencies(entity);
+            IReadOnlyCollection<Entity> dependencies = new List<Entity>();
+
+            try
+            {
+                dependencies = await this.dependencyService.ResolveDependencies(entity);
+            } catch (EntityNotSupportedException ex)
+            {
+                var msg = ConfigurationManager.AppSettings["entityNotSupported"];
+                msg = msg.Replace("{type}", entity.Type.GetDescription());
+                msg = msg.Replace("{displayName}", entity.DisplayName);
+                msg = msg.Replace("{notSupproted}", ex.Message);
+                Console.WriteLine(msg);
+                return null;
+            }
             var inboundFilter = InboundDependenciesFilter(entity.Type);
             var inbound = new List<Entity>();
             var outbound = new List<Entity>();

@@ -64,6 +64,12 @@ public class ApiClient : ClientBase
         return await this.ProcessApiData(apis);
     }
 
+    public async Task<IReadOnlyCollection<Entity>> FetchAllApisFlat()
+    {
+        var apis = await this.ApisClient.GetAllAsync(this.ExtractorParameters);
+        return this.CreateApiEntities(apis);
+    }
+
     public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)
     {
         var revisions = await this.ApiRevisionClient.GetApiRevisionsAsync(apiId, this.ExtractorParameters);
