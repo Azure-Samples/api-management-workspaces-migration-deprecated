@@ -1,5 +1,6 @@
 ﻿using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Entities;
+using MigrationTool.Migration.Domain.Exceptions;
 
 namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
@@ -8,18 +9,21 @@ public class ApiDependencyResolver : IEntityDependencyResolver
     private readonly ApiClient apiClient;
     private readonly SubscriptionClient subscriptionClient;
     private readonly VersionSetClient versionSetClient;
+    private readonly GatewayClient gatewayClient;
 
     private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
 
     public ApiDependencyResolver(ApiClient apiClient,
         SubscriptionClient subscriptionClient,
         PolicyRelatedDependenciesResolver policyDependenciesResolver,
-        VersionSetClient versionSetClient)
+        VersionSetClient versionSetClient,
+        GatewayClient gatewayClient)
     {
         this.apiClient = apiClient;
         this.subscriptionClient = subscriptionClient;
         this.policyDependenciesResolver = policyDependenciesResolver;
         this.versionSetClient = versionSetClient;
+        this.gatewayClient = gatewayClient;
     }
 
     public EntityType Type => EntityType.Api;
@@ -28,12 +32,17 @@ public class ApiDependencyResolver : IEntityDependencyResolver
     {
         if (this.Type != entity.Type || entity is not ApiEntity apiEntity) throw new Exception();
 
+        if (await this.gatewayClient.IsLinkedWithGateway(apiEntity))
+        {
+            throw new EntityNotSupportedException("gateway");
+        }
+
         var dependencies = new HashSet<Entity>();
 
+        dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(apiEntity));
         dependencies.UnionWith(await this.ResolveProducts(apiEntity));
         dependencies.UnionWith(await this.ResolveTags(apiEntity));
         dependencies.UnionWith(await this.ResolveApiOperationsRelatedDependencies(apiEntity));
-        dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(apiEntity));
         dependencies.UnionWith(await this.ResolveSubscriptions(apiEntity));
         dependencies.UnionWith(await this.ResolveRevisionDependencies(apiEntity));
         dependencies.UnionWith(await this.ResolveVersionSetDependencies(apiEntity));
@@ -46,9 +55,9 @@ public class ApiDependencyResolver : IEntityDependencyResolver
         var dependencies = new HashSet<Entity>();
         foreach (var revision in entity.Revisions)
         {
+            dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(revision));
             dependencies.UnionWith(await this.ResolveTags(revision));
             dependencies.UnionWith(await this.ResolveApiOperationsRelatedDependencies(revision));
-            dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(revision));
         }
 
         return dependencies;
