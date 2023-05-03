@@ -32,7 +32,7 @@ public class ApiDependencyResolver : IEntityDependencyResolver
     {
         if (this.Type != entity.Type || entity is not ApiEntity apiEntity) throw new Exception();
 
-        if (await this.gatewayClient.IsLinkedWithGateway((ApiEntity)entity))
+        if (await this.gatewayClient.IsLinkedWithGateway(apiEntity))
         {
             throw new EntityNotSupportedException("gateway");
         }
