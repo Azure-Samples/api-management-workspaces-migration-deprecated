@@ -45,6 +45,15 @@ public class DependencyGraphBuilder
                 Console.WriteLine(msg);
                 return null;
             }
+
+            if (entity.Type == EntityType.Product && dependencies.Where(dependency => dependency.Type.Equals(EntityType.Api)).Except(entities).Any())
+            {
+                //skip entities refering to the not selected APIs
+                continue;
+            }
+
+
+
             var inboundFilter = InboundDependenciesFilter(entity.Type);
             var inbound = new List<Entity>();
             var outbound = new List<Entity>();

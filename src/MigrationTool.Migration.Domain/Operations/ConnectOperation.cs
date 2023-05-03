@@ -7,3 +7,4 @@ public record ConnectOperation(Entity Entity, Entity ConnectToEntity) : IMigrati
     public EntityType EntityType => this.Entity.Type | this.ConnectToEntity.Type;
     public override string ToString() => $"Connect: {this.Entity} -> {this.ConnectToEntity}";
 }
+

@@ -1,6 +1,7 @@
 ﻿using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Operations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
 
@@ -22,25 +23,29 @@ public class ProductApiConnectionHandler : OperationHandler
     {
         var connectOperation = this.GetOperationOrThrow<ConnectOperation>(operation);
 
-        var product = this.GetProduct(connectOperation);
-        var api = this.GetApi(connectOperation);
+        Entity product;
+        Entity api;
 
-        return this.productClient.AddApi(product, api, workspaceId);
+        this.tryGetNewEntity(connectOperation, EntityType.Api, out api);
+        if (!this.tryGetNewEntity(connectOperation, EntityType.Product, out product))
+        {
+            return this.productClient.AddApi(product, api, null, workspaceId);
+        }
+        return this.productClient.AddApi(product, api, workspaceId, workspaceId);
     }
 
-    private Entity GetApi(ConnectOperation connectOperation) =>
-        this.GetNewEntity(connectOperation, EntityType.Api);
-
-    private Entity GetProduct(ConnectOperation connectOperation) =>
-        this.GetNewEntity(connectOperation, EntityType.Product);
-
-    private Entity GetNewEntity(ConnectOperation connectOperation, EntityType entityType)
+    private bool tryGetNewEntity(ConnectOperation connectOperation, EntityType entityType, out Entity entity)
     {
         var originalEntity = connectOperation.Entity.Type == entityType
             ? connectOperation.Entity
             : connectOperation.ConnectToEntity;
         if (!this.registry.TryGetMapping(originalEntity, out var newEntity))
-            throw new Exception();
-        return newEntity;
+        {
+            entity = originalEntity;
+            return false;
+        }
+        entity = newEntity;
+        return true;
     }
+
 }
