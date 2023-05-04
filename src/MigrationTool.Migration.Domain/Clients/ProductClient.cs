@@ -21,8 +21,11 @@ namespace MigrationTool.Migration.Domain.Clients
         const string DeleteProductRequest =
             "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/products/{4}?api-version={5}";
 
-        const string AddApiRequest =
+        const string AddApiWorkspaceLevelRequest =
             "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/products/{5}/apiLinks/{6}?api-version={7}";
+
+        const string AddApiServiceLevelRequest =
+            "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/products/{4}/apiLinks/{5}?api-version={6}";
 
         const string GetAllApisLinkedToProductRequest =
             "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/products/{4}/apis?api-version={5}&$filter=isCurrent";
@@ -119,14 +122,24 @@ namespace MigrationTool.Migration.Domain.Clients
             await this.CallApiManagementAsync(azToken, request);
         }
 
-        public async Task AddApi(Entity product, Entity api, string workspace)
+        public async Task AddApi(Entity product, Entity api, string productWorkspace, string apiWorkspace)
         {
             var (azToken, azSubId) = await this.Auth.GetAccessToken();
-            string requestUrl = string.Format(AddApiRequest,
-                this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-                workspace, product.Id, Guid.NewGuid(), GlobalConstants.ApiVersion);
+            string requestUrl;
+            if (productWorkspace.IsNullOrEmpty())
+            {
+                requestUrl = string.Format(AddApiServiceLevelRequest,
+                    this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
+                    product.Id, Guid.NewGuid(), GlobalConstants.ApiVersion);
+            }
+            else
+            {
+                requestUrl = string.Format(AddApiWorkspaceLevelRequest,
+                    this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
+                    productWorkspace, product.Id, Guid.NewGuid(), GlobalConstants.ApiVersion);
+            }
+            dynamic obj = CreateLinkObject(api, apiWorkspace);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-            dynamic obj = CreateLinkObject(api, workspace);
             request.Content = JsonContent.Create(obj, options: DefaultSerializerOptions);
             await this.CallApiManagementAsync(azToken, request);
         }

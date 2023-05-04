@@ -46,6 +46,10 @@ public class Program
         Console.WriteLine(ConfigurationManager.AppSettings["dependenciesFetching"]);
 
         var graph = await LongRunning(() => dependencyGraphBuilder.Build(apis)); 
+        if (graph == null)
+        {
+            return;
+        }
         Console.WriteLine(ConfigurationManager.AppSettings["migrationPlanBuilding"]);
         var plan = MigrationPlanner.Plan(graph, MigrationType.Copy);
 
@@ -120,6 +124,7 @@ public class Program
         collection.AddSingleton<WorkspaceClient, WorkspaceClient>();
         collection.AddSingleton<SubscriptionClient, SubscriptionClient>();
         collection.AddSingleton<VersionSetClient, VersionSetClient>();
+        collection.AddSingleton<GatewayClient, GatewayClient>();
 
         collection.AddSingleton<PolicyRelatedDependenciesResolver, PolicyRelatedDependenciesResolver>();
         collection.AddSingleton<DependencyService, DependencyService>();
