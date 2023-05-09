@@ -18,7 +18,7 @@ For APIs that you select, the tool detects the following dependencies and copies
 
 - Subscriptions 
 
-The tool aborts migration if it detects: 
+The tool aborts migration if it detects the following scenarios that aren't supported in workspaces preview: 
 
 * A backend used in the `set-backend` policy 
 
@@ -28,53 +28,67 @@ Other dependent resources aren't currently supported but are planned for future 
 
 ## Prerequisites
 
-- [.NET 6.0](https://dotnet.microsoft.com/download/dotnet/6.0) 
-
+- [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) 
+`
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) for authentication 
 
-- An API Management instance with an existing [workspace](https://learn.microsoft.com/en-us/azure/api-management/how-to-create-workspace) 
+- An API Management instance with an existing [workspace](https://learn.microsoft.com/azure/api-management/how-to-create-workspace) 
 
 - Permissions
     - Read access for API Management service-level APIs and [supported dependencies](#supported-dependencies) that can be migrated 
     - Write access for APIs and all [supported dependencies](#supported-resource-types-and-dependencies) in the workspace
-
+    
 ## Run the tool
 
-1. Open the terminal window and log in with Azure CLI: 
+1. Open a terminal window. Log in with Azure CLI and, if needed, set the correct Azure subscription: 
 
     ```  
     az login
+    az account set <your subscription ID>
     ``` 
 
-1. Run the tool with the following command:
+1. Clone the repo and its submodules locally.
 
     ```
-    TBD
+    git clone --recurse-submodules https://github.com/Azure-Samples/api-management-workspaces-migration.git
+    ```
+
+1. Change directory to the `api-management-workspaces-migration` directory and build the tool:
+
+    ```
+    cd api-management-workspaces-migration
+    dotnet build MigrationTool.sln
     ``` 
 
-1. Select the API Management instance in which to perform migration.
+1. Run the tool, passing parameters for the names of the resource group and the API Management instance in which to perform migration:
+
+    ```
+    dotnet run --project .\src\MigrationTool.Runtime\MigrationTool.Runtime.csproj --resourceGroup <resource group name> --serviceName <API Management instance name>
+    ```
 
 1. From the list that's displayed, select the APIs or API version sets to migrate. 
 
+    You should manually check if a selected API uses any unsupported dependencies before attempting the migration; if it does, your API can't be migrated with the tool.
+
 1. Select a workspace to migrate the resources to. 
 
-    The tool analyzes dependencies of selected APIs, like named values or subscriptions. See [Supported dependencies](#supported-dependencies) for the list of resources supported in the tool and [Roadmap](#roadmap) for the list of resources that are planned for future support. 
+1. The tool analyzes dependencies of selected APIs, like named values or subscriptions, and generates a migration plan. See [Supported dependencies](#supported-dependencies) for the list of resources supported in the tool and [Roadmap](#roadmap) for the list of resources that are planned for future support. 
     
-    1. Manually check if your API uses any unsupported dependencies before attempting the migration; if it does, your API can't be fully migrated with the tool. 
+    If the tool detects a dependency of a type that isn't supported in workspaces, it will automatically abort the migration attempt. 
+    
+1. When prompted, confirm to execute the migration. 
 
-    1. If the tool detects a dependency of a type that isn't supported in workspaces, it will automatically abort the migration attempt.  
-
-1. The tool analyzes the migration plan. Confirm to execute the migration. 
-
-1. The tool copies the selected APIs, API version sets, and revisions into the selected workspace. It appends a random hash to the API name and API suffix to avoid conflicts. 
+1. The tool copies the selected APIs, API version sets, and revisions into the selected workspace. It computes a random hash and appends it to the API name and API suffix to avoid conflicts. 
 
     For each detected API dependency: 
 
-    * If the dependency is used *only* by APIs that are being migrated to the workspace, the tool copies it to the workspace. In the future, the original resource on the service level will be deleted. While in preview, the tool keeps all the original resources for backup. 
+    * If the dependency is used *only* by APIs that are being migrated to the workspace, the tool copies it to the workspace with the random hash appended to its name. In the future, the original resource on the service level will be deleted. While in preview, the tool keeps all the original resources for backup.
 
     * If the dependency is used also by other APIs and it's of a type that allows referencing a service-level resource from a workspace-level resource (that is, product or tag), this dependency along with all of its dependencies (for example, subscription to a product or tag) will remain on the service level and the migrated API will reference it from a workspace. 
 
-    * If the dependency is used also by other APIs and doesn't allow referencing a service-level resource from a workspace-level resource, this dependency will be copied to a workspace with a random hash appended to its name. 
+    * If the dependency is used also by other APIs and doesn't allow referencing a service-level resource from a workspace-level resource, this dependency will be copied to a workspace with the random hash appended to its name. The future versions of the tool will still leave it undeleted.
+
+    Note: Migrated APIs in a workspace are updated to reference any dependency that's migrated to the workspace. For example, if a dependent product is migrated, the product assignment in a migrated API is updated to point to the migrated product instead.
 
 ## Clean up resources
 
@@ -89,12 +103,6 @@ In the future, after preview versions, the tool will automatically clean up reso
 ## Log
 
 The log of all operations is recorded in file _________.txt. The log file includes all the requests made by the tool, including URL, headers, payload, and response status. 
-
-## Telemetry
-
-The migration tool sends user-agent data to Azure to measure usage of the tool and to help with improvements.
-
-The user-agent contains only the version of the migration tool that is used.
 
 ## Roadmap 
 
@@ -129,6 +137,12 @@ The tool may be incorporated into the API Management’s management API and Azur
 We provide support through GitHub [Issues] and [Discussions] only. There is no paid support channel for this tool.
 
 Report bugs or submit feature requests in GitHub [Issues]. Please use one of the provided templates so that we gather all appropriate information.
+
+## Telemetry
+
+The migration tool sends user-agent data to Azure to measure usage of the tool and to help with improvements.
+
+The user-agent contains only the version of the migration tool that is used.
 
 ## License
 
