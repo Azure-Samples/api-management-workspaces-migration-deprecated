@@ -100,10 +100,6 @@ In the future, after preview versions, the tool will automatically clean up reso
 
 * Remove the suffix in the API URL path and from the name of resources whose original versions were deleted from the service level. 
 
-## Log
-
-The log of all operations is recorded in file _________.txt. The log file includes all the requests made by the tool, including URL, headers, payload, and response status. 
-
 ## Roadmap 
 
 We plan to add detection and migration of the following resource types that aren't currently supported:
