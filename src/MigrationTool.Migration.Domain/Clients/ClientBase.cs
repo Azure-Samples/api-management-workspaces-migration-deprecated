@@ -7,6 +7,7 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.A
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities;
 using MigrationTool.Migration.Domain.Entities;
 
 namespace MigrationTool.Migration.Domain.Clients;
@@ -25,8 +26,8 @@ public class ClientBase : ApiClientBase
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public ClientBase(IHttpClientFactory httpClientFactory, ExtractorParameters extractorParameters)
-        : base(httpClientFactory)
+    public ClientBase(IHttpClientFactory httpClientFactory, ExtractorParameters extractorParameters, AzureCliAuthenticator auth = null)
+        : base(httpClientFactory, auth)
     {
         this.ExtractorParameters = extractorParameters;
         this.HttpClient = httpClientFactory.CreateClient();
