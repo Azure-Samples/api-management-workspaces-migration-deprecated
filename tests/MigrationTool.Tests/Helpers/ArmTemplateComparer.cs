@@ -12,7 +12,7 @@ public class ArmTemplateComparer : IComparer
 {
     public int Compare(object x, object y)
     {
-        if (((TemplateResource) x).TestEquality((TemplateResource)y)) return 0;
+        if (x is TemplateResource && y is TemplateResource && ((TemplateResource) x).TestEquality((TemplateResource)y)) return 0;
         return -1;
     }
 }

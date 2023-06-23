@@ -31,6 +31,7 @@ public class BaseTest
     protected Mock<HttpMessageHandler> httpHandler = new Mock<HttpMessageHandler>();
     protected EntitiesRegistry entitiesRegistry = new EntitiesRegistry();
     protected Mock<AzureCliAuthenticator> auth = new Mock<AzureCliAuthenticator>();
+    protected IComparer comparer = new ArmTemplateComparer();
 
     protected string subscription = "test-subscription";
 
@@ -38,6 +39,4 @@ public class BaseTest
     {
         this.auth.Setup(auth => auth.GetAccessToken().Result).Returns(("someToken", this.subscription));
     }
-
-    protected IComparer comparer = new ArmTemplateComparer();
 }

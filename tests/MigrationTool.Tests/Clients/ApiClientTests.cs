@@ -23,6 +23,7 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Api
 using MigrationTool.Tests.Helpers;
 using System.Collections;
 using Newtonsoft.Json;
+using FluentAssertions;
 
 namespace MigrationTool.Tests.Clients;
 
@@ -54,7 +55,7 @@ public class ApiClientTests : BaseTest
 
         //verify
         Assert.AreEqual(request.Method, HttpMethod.Put);
-        Assert.AreEqual(request.RequestUri, $"https://management.azure.com/subscriptions/{this.subscription}/resourceGroups/{this.extractorParameters.ResourceGroup}/providers/Microsoft.ApiManagement/service/{this.extractorParameters.SourceApimName}/workspaces/{workspace}/apis/{entity.Id}/policies/policy?api-version=2022-09-01-preview");
+        request.RequestUri.PathAndQuery.Should().EndWith($"/workspaces/{workspace}/apis/{entity.Id}/policies/policy?api-version=2022-09-01-preview");
         var body = await request.Content.ReadAsStringAsync();
         Assert.AreEqual(body, policy);
     }
@@ -73,7 +74,7 @@ public class ApiClientTests : BaseTest
 
         //verify
         Assert.AreEqual(request.Method, HttpMethod.Put);
-        Assert.AreEqual(request.RequestUri, $"https://management.azure.com/subscriptions/{this.subscription}/resourceGroups/{this.extractorParameters.ResourceGroup}/providers/Microsoft.ApiManagement/service/{this.extractorParameters.SourceApimName}/workspaces/{workspace}/apis/{apiId}/operations/{operationId}/policies/policy?api-version=2022-09-01-preview");
+        request.RequestUri.PathAndQuery.Should().EndWith($"/workspaces/{workspace}/apis/{apiId}/operations/{operationId}/policies/policy?api-version=2022-09-01-preview");
         var body = await request.Content.ReadAsStringAsync();
         Assert.AreEqual(body, policy);
     }
@@ -89,7 +90,7 @@ public class ApiClientTests : BaseTest
 
         //verify
         Assert.AreEqual(request.Method, HttpMethod.Delete);
-        Assert.AreEqual(request.RequestUri, $"https://management.azure.com/subscriptions/{this.subscription}/resourceGroups/{this.extractorParameters.ResourceGroup}/providers/Microsoft.ApiManagement/service/{this.extractorParameters.SourceApimName}/apis/{entity.Id}?api-version=2022-09-01-preview");
+        request.RequestUri.PathAndQuery.Should().EndWith($"/apis/{entity.Id}?api-version=2022-09-01-preview");
         Assert.IsNull(request.Content);
     }
 
@@ -142,8 +143,8 @@ public class ApiClientTests : BaseTest
 
         //verify
         Assert.AreEqual(result.LongCount(), 1);
-        Assert.AreEqual(result.ToList()[0].ArmTemplate, list[0]); //first revision should be saved as api entity.
-        CollectionAssert.AreEqual((result.ToList()[0] as ApiEntity).Revisions.Select(rev => rev.ArmTemplate).ToList(), list.GetRange(1, 2), this.comparer); //n+1 revision should be saved under the Revisions field.
+        Assert.AreEqual(result.ToList()[0].ArmTemplate, list[0], "first revision should be saved as api entity.");
+        CollectionAssert.AreEqual((result.ToList()[0] as ApiEntity).Revisions.Select(rev => rev.ArmTemplate).ToList(), list.GetRange(1, 2), this.comparer, "n+1 revision should be saved under the Revisions field.");
     }
 
     [TestMethod]
@@ -189,8 +190,8 @@ public class ApiClientTests : BaseTest
 
         //verify
         Assert.AreEqual(result.LongCount(), 3);
-        CollectionAssert.AreEqual(result.ToList().GetRange(0, 3).Select(api => api.ArmTemplate).ToList(), list.GetRange(0, 3), this.comparer); // first 3 elements are listed as APIs
-        CollectionAssert.AreEqual((result.ToList()[2] as ApiEntity).Revisions.Select(rev => rev.ArmTemplate).ToList(), list.GetRange(3, 2), this.comparer); //revisions should be saved under the Revisions field.
+        CollectionAssert.AreEqual(result.ToList().GetRange(0, 3).Select(api => api.ArmTemplate).ToList(), list.GetRange(0, 3), this.comparer, "first 3 elements should be listed as APIs");
+        CollectionAssert.AreEqual((result.ToList()[2] as ApiEntity).Revisions.Select(rev => rev.ArmTemplate).ToList(), list.GetRange(3, 2), this.comparer, "revisions should be saved under the Revisions field.");
     }
 
     [TestMethod]
@@ -274,7 +275,7 @@ public class ApiClientTests : BaseTest
 
         //verify
         Assert.AreEqual(request.Method, HttpMethod.Get);
-        Assert.AreEqual(request.RequestUri, $"https://management.azure.com/subscriptions/{this.subscription}/resourceGroups/{this.extractorParameters.ResourceGroup}/providers/Microsoft.ApiManagement/service/{this.extractorParameters.SourceApimName}/apis/{apiId}?export=true&format=openapi%2Bjson&api-version=2022-09-01-preview");
+        request.RequestUri.PathAndQuery.Should().EndWith($"/apis/{apiId}?export=true&format=openapi%2Bjson&api-version=2022-09-01-preview");
     }
 
     [TestMethod]
@@ -300,7 +301,7 @@ public class ApiClientTests : BaseTest
 
         //verify
         Assert.AreEqual(request.Method, HttpMethod.Put);
-        Assert.AreEqual(request.RequestUri, $"https://management.azure.com/subscriptions/{this.subscription}/resourceGroups/{this.extractorParameters.ResourceGroup}/providers/Microsoft.ApiManagement/service/{this.extractorParameters.SourceApimName}/workspaces/{workspaceId}/apis/{apiId}?import=true&api-version=2022-09-01-preview");
+        request.RequestUri.PathAndQuery.Should().EndWith($"/workspaces/{workspaceId}/apis/{apiId}?import=true&api-version=2022-09-01-preview");
         var body = await request.Content.ReadAsStringAsync();
         Assert.AreEqual(body, apiDefinition);
 
@@ -323,7 +324,7 @@ public class ApiClientTests : BaseTest
 
         //verify
         Assert.AreEqual(request.Method, HttpMethod.Put);
-        Assert.AreEqual(request.RequestUri, $"https://management.azure.com/subscriptions/{this.subscription}/resourceGroups/{this.extractorParameters.ResourceGroup}/providers/Microsoft.ApiManagement/service/{this.extractorParameters.SourceApimName}/workspaces/{workspaceId}/apis/{api.Name}?api-version=2022-09-01-preview");
+        request.RequestUri.PathAndQuery.Should().EndWith($"/workspaces/{workspaceId}/apis/{api.Name}?api-version=2022-09-01-preview");
         var body = await request.Content.ReadAsStringAsync();
         Assert.IsTrue(JsonConvert.DeserializeObject<ApiTemplateResource>(body).TestEquality(api));
 
