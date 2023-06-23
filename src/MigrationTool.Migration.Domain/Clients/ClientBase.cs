@@ -26,11 +26,18 @@ public class ClientBase : ApiClientBase
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+    protected virtual AzureCliAuthenticator Auth { get; private set; } = new AzureCliAuthenticator();
+
     public ClientBase(IHttpClientFactory httpClientFactory, ExtractorParameters extractorParameters, AzureCliAuthenticator auth = null)
-        : base(httpClientFactory, auth)
+        : base(httpClientFactory)
     {
         this.ExtractorParameters = extractorParameters;
         this.HttpClient = httpClientFactory.CreateClient();
+
+        if (auth != null)
+        {
+            this.Auth = auth;
+        }
     }
 
     protected async Task<string> GetResponseBodyAsync(String azToken, HttpRequestMessage request)
