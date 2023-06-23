@@ -6,6 +6,7 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.A
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Executor.Operations;
 
@@ -47,9 +48,10 @@ public class ApiClient : ClientBase
         IApiOperationClient apiOperationClient,
         IPolicyClient policyClient,
         IHttpClientFactory httpClientFactory,
-        EntitiesRegistry registry
+        EntitiesRegistry registry,
+        AzureCliAuthenticator auth = null
         )
-        : base(httpClientFactory, extractorParameters)
+        : base(httpClientFactory, extractorParameters, auth)
     {
         this.ApisClient = apisClient;
         this.ProductsClient = productsClient;
@@ -68,16 +70,6 @@ public class ApiClient : ClientBase
     {
         var apis = await this.ApisClient.GetAllAsync(this.ExtractorParameters);
         return this.CreateApiEntities(apis);
-    }
-
-    public async Task<IReadOnlyCollection<Entity>> FetchApiRevisions(string apiId)
-    {
-        var revisions = await this.ApiRevisionClient.GetApiRevisionsAsync(apiId, this.ExtractorParameters);
-        var revisionIds = revisions.ConvertAll(_ => _.ApiId).ToHashSet();
-        var apis = await this.ApisClient.GetAllAsync(this.ExtractorParameters, true);
-        return apis.Where(api => revisionIds.Contains(api.Name))
-            .Select(api => new Entity(api.Name, EntityType.Api, api.Properties.DisplayName, api))
-            .ToList();
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchProducts(string entityId)
@@ -103,7 +95,7 @@ public class ApiClient : ClientBase
     {
         var operations =
             await this.ApiOperationClient.GetOperationsLinkedToApiAsync(entityId, this.ExtractorParameters);
-        return operations.ConvertAll(operation =>
+         return operations.ConvertAll(operation =>
             new Entity(operation.Name, EntityType.ApiOperation, operation.Properties.DisplayName, operation));
     }
 
@@ -126,8 +118,6 @@ public class ApiClient : ClientBase
         string requestUrl = string.Format(ExportApiRequest,
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
             apiId, GlobalConstants.ApiVersion);
-        // HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        // request.Headers.Add("Accept", "application/vnd.oai.openapi+json");
         return await this.CallApiManagementAsync(azToken, requestUrl);
     }
 
@@ -138,8 +128,6 @@ public class ApiClient : ClientBase
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
             workspace, apiId, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-        // request.Headers.IfMatch.Add(EntityTagHeaderValue.Any);
-        // request.Content = new StringContent(apiDefinition, Encoding.UTF8, "application/vnd.oai.openapi+json");
         request.Content = new StringContent(apiDefinition, Encoding.UTF8, "application/json");
         var creationResponse = await this.CallApiManagementAsync(azToken, request);
 
