@@ -10,7 +10,7 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
     // private static readonly Regex globalRegex = new Regex("^/policies/policy$");
     private static readonly Regex apiRegex = new Regex("^/apis/(.+);rev=(.+)/policies/policy$");
     private static readonly Regex apiOperationRegex = new Regex("^/apis/(.+);rev=(.+)/operations/(.+)/policies/policy$");
-    private static readonly Regex productRegex = new Regex("^/product/(.+)/policies/policy$");
+    private static readonly Regex productRegex = new Regex("^/products/(.+)/policies/policy$");
     // private static readonly Regex workspaceRegex = new Regex("^/workspaces/(.+)/policies/policy$");
 
     private readonly NamedValuesClient namedValuesClient;
@@ -45,20 +45,6 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
 
     private async Task<Entity> TryMatchEntity(string id)
     {
-        // var match = globalRegex.Match(id);
-        // if (match.Success)
-        // {
-        //     entity = new Entity("", EntityType.Global);
-        //     return true;
-        // }
-        //
-        // match = workspaceRegex.Match(id);
-        // if (match.Success)
-        // {
-        //     entity = new Entity(match.Groups[1].Value, EntityType.Workspace);
-        //     return true;
-        // }
-
         Entity entity = null;
         
         var match = apiOperationRegex.Match(id);
