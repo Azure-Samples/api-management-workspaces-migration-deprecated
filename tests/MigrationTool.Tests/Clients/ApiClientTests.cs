@@ -24,6 +24,8 @@ using MigrationTool.Tests.Helpers;
 using System.Collections;
 using Newtonsoft.Json;
 using FluentAssertions;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Tags;
+//using NUnit.Framework;
 
 namespace MigrationTool.Tests.Clients;
 
@@ -36,7 +38,7 @@ public class ApiClientTests : BaseTest
     [TestInitialize]
     public void Initialize()
     {
-        this.client = new ApiClient(this.extractorParameters, this.apisClient.Object, this.productsClient.Object, this.apiOperationClient.Object, this.policyClient.Object, this.httpHandler.CreateClientFactory(), this.entitiesRegistry, this.auth.Object);
+        this.client = new ApiClient(this.extractorParameters, this.apisClient.Object, this.productsClient.Object, this.apiOperationClient.Object, this.policyClient.Object, this.httpHandler.CreateClientFactory(), this.entitiesRegistry, this.tagClient.Object, this.auth.Object);
 
         this.httpHandler.SetupAnyRequest()
             .ReturnsResponse(HttpStatusCode.OK)
@@ -329,5 +331,20 @@ public class ApiClientTests : BaseTest
         Assert.IsTrue(JsonConvert.DeserializeObject<ApiTemplateResource>(body).TestEquality(api));
 
         Assert.IsTrue(result.ArmTemplate.TestEquality(api));
+    }
+
+    [TestMethod]
+    public async Task FetchTags()
+    {
+        //arrange
+        var id = "test-id";
+        List<TagTemplateResource> list = new();
+        list.Add(new TagTemplateResource() { Properties = new TagProperties() { DisplayName = "test-tag" } });
+        list.Add(new TagTemplateResource() { Properties = new TagProperties() { DisplayName = "test-tag2" } });
+        this.tagClient.Setup(client => client.GetAllTagsLinkedToApiAsync(id, It.IsAny<ExtractorParameters>()).Result).Returns(list);
+
+        //act
+        var result = await this.client.FetchTags(id);
+        CollectionAssert.AreEqual(result.Select(tag => tag.ArmTemplate).ToList(), list, this.comparer);
     }
 }

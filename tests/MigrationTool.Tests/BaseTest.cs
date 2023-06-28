@@ -31,6 +31,8 @@ public class BaseTest
     protected Mock<HttpMessageHandler> httpHandler = new Mock<HttpMessageHandler>();
     protected EntitiesRegistry entitiesRegistry = new EntitiesRegistry();
     protected Mock<AzureCliAuthenticator> auth = new Mock<AzureCliAuthenticator>();
+    protected Mock<ITagClient> tagClient = new Mock<ITagClient>();
+
     protected IComparer comparer = new ArmTemplateComparer();
 
     protected string subscription = "test-subscription";

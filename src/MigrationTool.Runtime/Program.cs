@@ -125,6 +125,7 @@ public class Program
         collection.AddSingleton<SubscriptionClient, SubscriptionClient>();
         collection.AddSingleton<VersionSetClient, VersionSetClient>();
         collection.AddSingleton<GatewayClient, GatewayClient>();
+        collection.AddSingleton<TagClient, TagClient>();
 
         collection.AddSingleton<PolicyRelatedDependenciesResolver, PolicyRelatedDependenciesResolver>();
         collection.AddSingleton<DependencyService, DependencyService>();
@@ -132,9 +133,9 @@ public class Program
         collection.AddSingleton<IEntityDependencyResolver, ProductDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver, ApiVersionSetDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver, NamedValueDependencyResolver>();
+        collection.AddSingleton<IEntityDependencyResolver, TagsDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Group));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.ApiOperation));
-        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Tag));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.PolicyFragment));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Subscription));
 
@@ -147,6 +148,9 @@ public class Program
         collection.AddSingleton<OperationHandler, ProductApiConnectionHandler>();
         collection.AddSingleton<OperationHandler, SubscriptionCopyHandler>();
         collection.AddSingleton<OperationHandler, VersionSetCopyOperationHandler>();
+        collection.AddSingleton<OperationHandler, ProductTagConnectionHandler>();
+        collection.AddSingleton<OperationHandler, ApiTagConnectionHandler>();
+        collection.AddSingleton<OperationHandler, TagCopyHandler>();
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.Api | EntityType.Subscription, typeof(ConnectOperation)));
         collection.AddSingleton<OperationHandler>(_ =>

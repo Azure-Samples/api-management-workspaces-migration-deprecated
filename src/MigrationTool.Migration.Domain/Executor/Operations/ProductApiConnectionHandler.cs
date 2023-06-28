@@ -8,12 +8,10 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 public class ProductApiConnectionHandler : OperationHandler
 {
     private readonly ProductClient productClient;
-    private readonly EntitiesRegistry registry;
 
-    public ProductApiConnectionHandler(ProductClient productClient, EntitiesRegistry registry)
+    public ProductApiConnectionHandler(ProductClient productClient, EntitiesRegistry registry) : base(registry)
     {
         this.productClient = productClient;
-        this.registry = registry;
     }
 
     public override EntityType UsedEntities => EntityType.Product | EntityType.Api;
@@ -32,20 +30,6 @@ public class ProductApiConnectionHandler : OperationHandler
             return this.productClient.AddApi(product, api, null, workspaceId);
         }
         return this.productClient.AddApi(product, api, workspaceId, workspaceId);
-    }
-
-    private bool tryGetNewEntity(ConnectOperation connectOperation, EntityType entityType, out Entity entity)
-    {
-        var originalEntity = connectOperation.Entity.Type == entityType
-            ? connectOperation.Entity
-            : connectOperation.ConnectToEntity;
-        if (!this.registry.TryGetMapping(originalEntity, out var newEntity))
-        {
-            entity = originalEntity;
-            return false;
-        }
-        entity = newEntity;
-        return true;
     }
 
 }

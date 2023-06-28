@@ -13,12 +13,10 @@ public class SubscriptionCopyHandler : OperationHandler
     private static readonly Regex ScopeRegex = new Regex("^(.+)/(products|apis)/([^/]+)$");
     
     private readonly SubscriptionClient subscriptionClient;
-    private readonly EntitiesRegistry registry;
 
-    public SubscriptionCopyHandler(SubscriptionClient subscriptionClient, EntitiesRegistry registry)
+    public SubscriptionCopyHandler(SubscriptionClient subscriptionClient, EntitiesRegistry registry) : base(registry)
     {
         this.subscriptionClient = subscriptionClient;
-        this.registry = registry;
     }
 
     public override EntityType UsedEntities => EntityType.Subscription;

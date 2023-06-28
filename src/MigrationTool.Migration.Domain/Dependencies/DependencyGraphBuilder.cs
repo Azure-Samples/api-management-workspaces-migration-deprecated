@@ -46,7 +46,7 @@ public class DependencyGraphBuilder
                 return null;
             }
 
-            if (entity.Type == EntityType.Product && dependencies.Where(dependency => dependency.Type.Equals(EntityType.Api)).Except(entities).Any())
+            if (dependencies.Where(dependency => dependency.Type.Equals(EntityType.Api)).Except(entities).Any())
             {
                 //skip entities refering to the not selected APIs
                 continue;

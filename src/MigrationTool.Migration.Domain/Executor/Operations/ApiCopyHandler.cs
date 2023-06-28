@@ -15,13 +15,11 @@ public class ApiCopyOperationHandler : OperationHandler
     private static readonly Regex ApiIdWithRevision = new Regex("^(.*);rev=(.*)$");
 
     private readonly ApiClient apiClient;
-    private readonly EntitiesRegistry registry;
     private readonly PolicyModifier policyModifier;
 
-    public ApiCopyOperationHandler(ApiClient apiClient, EntitiesRegistry registry, PolicyModifier policyModifier)
+    public ApiCopyOperationHandler(ApiClient apiClient, EntitiesRegistry registry, PolicyModifier policyModifier) : base (registry)
     {
         this.apiClient = apiClient;
-        this.registry = registry;
         this.policyModifier = policyModifier;
     }
 
