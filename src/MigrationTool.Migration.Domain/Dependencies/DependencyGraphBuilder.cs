@@ -10,6 +10,9 @@ public class DependencyGraphBuilder
     private static readonly IReadOnlySet<EntityType> ApiInboundTypes = new HashSet<EntityType>()
         { EntityType.Product, EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment };
 
+    private static readonly IReadOnlySet<EntityType> ApiOperationInboundTypes = new HashSet<EntityType>()
+        { EntityType.Api, EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment };
+
     private static readonly IReadOnlySet<EntityType> ProductInboundTypes = new HashSet<EntityType>()
         { EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment };
 
@@ -78,7 +81,7 @@ public class DependencyGraphBuilder
         {
             EntityType.Api => ApiInboundTypes,
             EntityType.Product => ProductInboundTypes,
-            // EntityType.ApiOperation => entity => false,
+            EntityType.ApiOperation => ApiOperationInboundTypes,
             // EntityType.Subscription => entity => false,
             // EntityType.Group => entity => false,
             // EntityType.PolicyFragment => entity => false,

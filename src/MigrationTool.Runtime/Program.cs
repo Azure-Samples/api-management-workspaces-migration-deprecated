@@ -134,8 +134,10 @@ public class Program
         collection.AddSingleton<IEntityDependencyResolver, ApiVersionSetDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver, NamedValueDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver, TagsDependencyResolver>();
+        collection.AddSingleton<IEntityDependencyResolver, ApiOperationDependencyResolver>();
+        collection.AddSingleton<TagsDependencyResolver, TagsDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Group));
-        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.ApiOperation));
+        //collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.ApiOperation));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.PolicyFragment));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Subscription));
 
@@ -151,6 +153,7 @@ public class Program
         collection.AddSingleton<OperationHandler, ProductTagConnectionHandler>();
         collection.AddSingleton<OperationHandler, ApiTagConnectionHandler>();
         collection.AddSingleton<OperationHandler, TagCopyHandler>();
+        collection.AddSingleton<OperationHandler, ApiOperationTagConnectionHandler>();
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.Api | EntityType.Subscription, typeof(ConnectOperation)));
         collection.AddSingleton<OperationHandler>(_ =>
@@ -159,6 +162,8 @@ public class Program
         collection.AddSingleton<OperationHandler, NamedValueCopyHandler>();
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.Api | EntityType.NamedValue, typeof(ConnectOperation)));
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.ApiOperation | EntityType.NamedValue, typeof(ConnectOperation)));
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.Product | EntityType.NamedValue, typeof(ConnectOperation)));
         

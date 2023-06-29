@@ -64,6 +64,8 @@ public class ApiCopyOperationHandler : OperationHandler
                 var modifiedPolicy = this.policyModifier.Modify(policy);
                 await this.apiClient.UploadApiOperationPolicy(newApi.Id, originalOperation.Id, modifiedPolicy, workspaceId);
             }
+
+            this.registry.RegisterMapping(originalOperation, new OperationEntity(originalOperation.Id, newApi.Id));
         }
 
         return newApi;

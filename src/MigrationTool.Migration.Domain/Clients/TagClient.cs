@@ -63,6 +63,7 @@ public class TagClient : ClientBase
             return await this._productClient.Fetch(id);
         } else
         {
+            //return await this._apiClient.Fetch(innerObject.Value<string>("apiName"));
             var operations = await this._apiClient.FetchOperations(innerObject.Value<string>("apiName"));
             return operations.Where(operation => operation.Id.Equals(id)).First();
         }
@@ -102,12 +103,23 @@ public class TagClient : ClientBase
         await this.Connect(tag, workspaceId, LinkWithApiRequest, payload);
     }
 
+    internal async Task ConnectWithApiOperation(Entity tag, OperationEntity apiOperation, string workspaceId)
+    {
+        var (azToken, azSubId) = await this.Auth.GetAccessToken();
+        var operationId = string.Format(IdString,
+            azSubId, this.ExtractorParameters.ResourceGroup,
+            this.ExtractorParameters.SourceApimName, workspaceId, $"apis/{apiOperation.ApiId}/operations", apiOperation.Id
+            );
+        var payload = new { Properties = new { operationId = operationId } };
+        await this.Connect(tag, workspaceId, LinkWithApiOperationRequest, payload);
+    }
+
     private async Task Connect(Entity tag, string workspaceId, string URL, object payload)
     {
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         string requestUrl = string.Format(URL,
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-            workspaceId, tag.DisplayName, "abcd", GlobalConstants.ApiVersion);
+            workspaceId, tag.DisplayName, Guid.NewGuid().ToString(), GlobalConstants.ApiVersion);
         
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
         request.Content = JsonContent.Create(payload, options: DefaultSerializerOptions);

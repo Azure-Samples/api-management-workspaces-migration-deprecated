@@ -12,11 +12,13 @@ public class ApiDependencyResolver : IEntityDependencyResolver
     private readonly GatewayClient gatewayClient;
 
     private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
+    private readonly TagsDependencyResolver tagsDependencyResolver;
 
     public ApiDependencyResolver(ApiClient apiClient,
         SubscriptionClient subscriptionClient,
         PolicyRelatedDependenciesResolver policyDependenciesResolver,
         VersionSetClient versionSetClient,
+        TagsDependencyResolver tagsDependencyResolver,
         GatewayClient gatewayClient)
     {
         this.apiClient = apiClient;
@@ -24,6 +26,7 @@ public class ApiDependencyResolver : IEntityDependencyResolver
         this.policyDependenciesResolver = policyDependenciesResolver;
         this.versionSetClient = versionSetClient;
         this.gatewayClient = gatewayClient;
+        this.tagsDependencyResolver = tagsDependencyResolver;
     }
 
     public EntityType Type => EntityType.Api;
@@ -42,7 +45,7 @@ public class ApiDependencyResolver : IEntityDependencyResolver
         dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(apiEntity));
         dependencies.UnionWith(await this.ResolveProducts(apiEntity));
         dependencies.UnionWith(await this.ResolveTags(apiEntity));
-        dependencies.UnionWith(await this.ResolveApiOperationsRelatedDependencies(apiEntity));
+        dependencies.UnionWith(await this.ResolveApiOperations(apiEntity));
         dependencies.UnionWith(await this.ResolveSubscriptions(apiEntity));
         dependencies.UnionWith(await this.ResolveRevisionDependencies(apiEntity));
         dependencies.UnionWith(await this.ResolveVersionSetDependencies(apiEntity));
@@ -57,7 +60,7 @@ public class ApiDependencyResolver : IEntityDependencyResolver
         {
             dependencies.UnionWith(await this.ResolvePolicyRelatedDependencies(revision));
             dependencies.UnionWith(await this.ResolveTags(revision));
-            dependencies.UnionWith(await this.ResolveApiOperationsRelatedDependencies(revision));
+            dependencies.UnionWith(await this.ResolveApiOperations(revision));
         }
 
         return dependencies;
@@ -72,20 +75,23 @@ public class ApiDependencyResolver : IEntityDependencyResolver
     Task<IReadOnlyCollection<Entity>> ResolveTags(Entity entity) =>
         this.apiClient.FetchTags(entity.Id);
 
-    async Task<IReadOnlyCollection<Entity>> ResolveApiOperationsRelatedDependencies(Entity entity)
+    async Task<IReadOnlyCollection<Entity>> ResolveApiOperations(Entity entity)
     {
-        var dependencies = new HashSet<Entity>();
-        var operations = await this.apiClient.FetchOperations(entity.Id);
+        //var dependencies = new HashSet<Entity>();
+        return await this.apiClient.FetchOperations(entity.Id);
 
-        foreach (var operation in operations)
-        {
-            var policy = await this.apiClient.FetchOperationPolicy(entity.Id, operation.Id);
-            if (policy != null)
-                dependencies.UnionWith(await this.policyDependenciesResolver.Resolve(policy));
-            dependencies.UnionWith(await this.apiClient.FetchOperationTags(entity.Id, operation.Id));
-        }
+        //foreach (var operation in operations)
+        //{
+        //    var policy = await this.apiClient.FetchOperationPolicy(entity.Id, operation.Id);
+        //    if (policy != null)
+        //    {
+        //        dependencies.UnionWith(await this.policyDependenciesResolver.Resolve(policy));
+        //    }
 
-        return dependencies;
+        //    dependencies.UnionWith(await this.apiClient.FetchOperationTags(entity.Id, operation.Id));
+        //}
+
+        //return dependencies;
     }
 
     async Task<IReadOnlyCollection<Entity>> ResolvePolicyRelatedDependencies(Entity entity)

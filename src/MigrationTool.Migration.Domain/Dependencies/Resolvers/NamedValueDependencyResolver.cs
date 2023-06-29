@@ -50,7 +50,7 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
         var match = apiOperationRegex.Match(id);
         if (match.Success)
         {
-            return await this.getApiById(match.Groups[1].Value);
+            return await this.getOperationById(match.Groups[1].Value, match.Groups[3].Value);
         }
         
         match = apiRegex.Match(id);
@@ -72,8 +72,12 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
 
     private async Task<Entity> getApiById(string id)
     {
+        return await this.apiClient.Fetch(id);
+    }
 
-        var all = await this.apiClient.FetchAllApisFlat();
-        return all.Where(api => api.Id.Equals(id)).First();
+    private async Task<Entity> getOperationById(string apiId, string operationId)
+    {
+        var operations = await this.apiClient.FetchOperations(apiId);
+        return operations.First(operation => operation.Id == operationId);
     }
 }

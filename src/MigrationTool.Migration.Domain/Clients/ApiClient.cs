@@ -108,7 +108,7 @@ public class ApiClient : ClientBase
         var operations =
             await this.ApiOperationClient.GetOperationsLinkedToApiAsync(entityId, this.ExtractorParameters);
          return operations.ConvertAll(operation =>
-            new Entity(operation.Name, EntityType.ApiOperation, operation.Properties.DisplayName, operation));
+            new OperationEntity(operation.Name, entityId));
     }
 
     public async Task<string?> FetchOperationPolicy(string entityId, string operationId)
@@ -219,17 +219,6 @@ public class ApiClient : ClientBase
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
             api.Id, GlobalConstants.ApiVersion);
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
-        await this.CallApiManagementAsync(azToken, request);
-    }
-
-    internal async Task AddTag(Entity api, Entity tag, string workspace)
-    {
-        var (azToken, azSubId) = await this.Auth.GetAccessToken();
-        string requestUrl = string.Format(AddTagRequest,
-                this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-                workspace, api.Id, tag.DisplayName, GlobalConstants.ApiVersion);
-
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
         await this.CallApiManagementAsync(azToken, request);
     }
 }

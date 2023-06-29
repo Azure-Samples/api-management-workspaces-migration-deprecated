@@ -39,11 +39,28 @@ public static class MigrationPlanner
     {
         foreach (var entity in sortedEntities)
         {
-            plan.AddCopyOperation(entity);
+            if(ShouldCopy(entity))
+            {
+                plan.AddCopyOperation(entity);
+            }
             foreach (var connections in graph.Inbounds(entity))
             {
-                plan.AddConnectOperation(connections, entity);
+                if(ShouldConnect(entity, connections))
+                {
+                    plan.AddConnectOperation(connections, entity);
+                }
             }
         }
+    }
+
+    private static bool ShouldCopy(Entity entity)
+    {
+        return entity.Type != EntityType.ApiOperation;
+    }
+
+    private static bool ShouldConnect(Entity entity, Entity connections)
+    {
+        return !((entity.Type == EntityType.Api && connections.Type == EntityType.ApiOperation) 
+            || (entity.Type == EntityType.ApiOperation && connections.Type == EntityType.Api));
     }
 }
