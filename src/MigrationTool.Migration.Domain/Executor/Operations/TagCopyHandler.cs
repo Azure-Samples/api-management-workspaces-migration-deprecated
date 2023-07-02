@@ -3,13 +3,14 @@ using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Operations;
 using MigrationTool.Migration.Domain.Extensions;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class TagCopyHandler : OperationHandler
 {
-    private TagClient tagClient;
-    public TagCopyHandler(TagClient tagClient, EntitiesRegistry registry) : base (registry)
+    private ITagClient tagClient;
+    public TagCopyHandler(ITagClient tagClient, EntitiesRegistry registry) : base (registry)
     {
         this.tagClient = tagClient;
     }

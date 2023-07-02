@@ -1,4 +1,5 @@
 ﻿using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Exceptions;
 
@@ -6,20 +7,20 @@ namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
 public class ApiDependencyResolver : IEntityDependencyResolver
 {
-    private readonly ApiClient apiClient;
-    private readonly SubscriptionClient subscriptionClient;
-    private readonly VersionSetClient versionSetClient;
-    private readonly GatewayClient gatewayClient;
+    private readonly IApiClient apiClient;
+    private readonly ISubscriptionClient subscriptionClient;
+    private readonly IVersionSetClient versionSetClient;
+    private readonly IGatewayClient gatewayClient;
 
-    private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
-    private readonly TagsDependencyResolver tagsDependencyResolver;
+    private readonly IPolicyRelatedDependenciesResolver policyDependenciesResolver;
+    private readonly ITagsDependencyResolver tagsDependencyResolver;
 
-    public ApiDependencyResolver(ApiClient apiClient,
-        SubscriptionClient subscriptionClient,
-        PolicyRelatedDependenciesResolver policyDependenciesResolver,
-        VersionSetClient versionSetClient,
-        TagsDependencyResolver tagsDependencyResolver,
-        GatewayClient gatewayClient)
+    public ApiDependencyResolver(IApiClient apiClient,
+        ISubscriptionClient subscriptionClient,
+        IPolicyRelatedDependenciesResolver policyDependenciesResolver,
+        IVersionSetClient versionSetClient,
+        ITagsDependencyResolver tagsDependencyResolver,
+        IGatewayClient gatewayClient)
     {
         this.apiClient = apiClient;
         this.subscriptionClient = subscriptionClient;
@@ -77,21 +78,7 @@ public class ApiDependencyResolver : IEntityDependencyResolver
 
     async Task<IReadOnlyCollection<Entity>> ResolveApiOperations(Entity entity)
     {
-        //var dependencies = new HashSet<Entity>();
         return await this.apiClient.FetchOperations(entity.Id);
-
-        //foreach (var operation in operations)
-        //{
-        //    var policy = await this.apiClient.FetchOperationPolicy(entity.Id, operation.Id);
-        //    if (policy != null)
-        //    {
-        //        dependencies.UnionWith(await this.policyDependenciesResolver.Resolve(policy));
-        //    }
-
-        //    dependencies.UnionWith(await this.apiClient.FetchOperationTags(entity.Id, operation.Id));
-        //}
-
-        //return dependencies;
     }
 
     async Task<IReadOnlyCollection<Entity>> ResolvePolicyRelatedDependencies(Entity entity)

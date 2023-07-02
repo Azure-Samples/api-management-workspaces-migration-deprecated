@@ -7,7 +7,7 @@ using MigrationTool.Migration.Domain.Entities;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
-public class GatewayClient : ClientBase
+public class GatewayClient : ClientBase, MigrationTool.Migration.Domain.Clients.Abstraction.IGatewayClient
 {
     private IGatewayClient gatewayClient;
     private IApiDataProcessor apiDataProcessor;
@@ -47,5 +47,4 @@ public class GatewayClient : ClientBase
         var apis = await this.FetchAllApisLinkedToGateways();
         return apis.Contains(api);
     }
-
 }

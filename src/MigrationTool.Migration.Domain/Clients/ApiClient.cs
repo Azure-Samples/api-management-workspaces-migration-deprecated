@@ -7,12 +7,13 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Executor.Operations;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
-public class ApiClient : ClientBase
+public class ApiClient : ClientBase, IApiClient
 {
     const string CreateApiRequest =
         "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/apis/{5}?api-version={6}";
@@ -43,7 +44,7 @@ public class ApiClient : ClientBase
     private readonly IProductsClient ProductsClient;
     private readonly IApiOperationClient ApiOperationClient;
     private readonly IPolicyClient PolicyClient;
-    private readonly ITagClient TagClient;
+    private readonly Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions.ITagClient TagClient;
 
     public ApiClient(
         ExtractorParameters extractorParameters,
@@ -52,7 +53,7 @@ public class ApiClient : ClientBase
         IPolicyClient policyClient,
         IHttpClientFactory httpClientFactory,
         EntitiesRegistry registry,
-        ITagClient tagClient,
+        Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions.ITagClient tagClient,
         AzureCliAuthenticator auth = null
         )
         : base(httpClientFactory, extractorParameters, auth)

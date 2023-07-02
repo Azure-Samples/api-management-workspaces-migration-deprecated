@@ -1,19 +1,19 @@
 ﻿using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
-using MigrationTool.Migration.Domain.Exceptions;
 
 namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
 public class ProductDependencyResolver : IEntityDependencyResolver
 {
-    private readonly ProductClient productClient;
-    private readonly SubscriptionClient subscriptionClient;
+    private readonly IProductClient productClient;
+    private readonly ISubscriptionClient subscriptionClient;
 
-    private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
+    private readonly IPolicyRelatedDependenciesResolver policyDependenciesResolver;
 
-    public ProductDependencyResolver(ProductClient productClient,
-        SubscriptionClient subscriptionClient,
-        PolicyRelatedDependenciesResolver policyDependenciesResolver)
+    public ProductDependencyResolver(IProductClient productClient,
+        ISubscriptionClient subscriptionClient,
+        IPolicyRelatedDependenciesResolver policyDependenciesResolver)
     {
         this.productClient = productClient;
         this.subscriptionClient = subscriptionClient;

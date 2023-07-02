@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 
 namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
@@ -14,9 +15,9 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
     // private static readonly Regex workspaceRegex = new Regex("^/workspaces/(.+)/policies/policy$");
 
     private readonly NamedValuesClient namedValuesClient;
-    private readonly ApiClient apiClient;
+    private readonly IApiClient apiClient;
 
-    public NamedValueDependencyResolver(NamedValuesClient namedValuesClient, ApiClient apiClient)
+    public NamedValueDependencyResolver(NamedValuesClient namedValuesClient, IApiClient apiClient)
     {
         this.namedValuesClient = namedValuesClient;
         this.apiClient = apiClient;

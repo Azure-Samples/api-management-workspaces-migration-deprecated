@@ -1,17 +1,17 @@
 ﻿using System.Net.Http.Json;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ProductApis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.DataProcessors.Absctraction;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
-using MigrationTool.Migration.Domain.Extensions;
 using Newtonsoft.Json;
 
 namespace MigrationTool.Migration.Domain.Clients
 {
-    public class ProductClient : ClientBase
+    public class ProductClient : ClientBase, IProductClient
     {
         const string CreateProductPolicyRequest =
             "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/products/{5}/policies/policy?api-version={6}";
@@ -38,7 +38,7 @@ namespace MigrationTool.Migration.Domain.Clients
         private readonly IPolicyClient PolicyClient;
         private readonly IApiRevisionClient ApiRevisionClient;
         private readonly IApiDataProcessor ApiDataProcessor;
-        private readonly ITagClient TagClient;
+        private readonly Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions.ITagClient TagClient;
         private readonly IProductsClient ProductsClient;
 
         public ProductClient(ExtractorParameters extractorParameters,
@@ -48,8 +48,9 @@ namespace MigrationTool.Migration.Domain.Clients
             IApiRevisionClient apiRevisionClient,
             IApiDataProcessor apiDataProcessor,
             IProductsClient productsClient,
-            ITagClient tagClient)
-            : base(httpClientFactory, extractorParameters)
+            Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions.ITagClient tagClient,
+            AzureCliAuthenticator auth = null)
+            : base(httpClientFactory, extractorParameters, auth)
         {
             this.ApisClient = apisClient;
             this.PolicyClient = policyClient;
@@ -162,17 +163,6 @@ namespace MigrationTool.Migration.Domain.Clients
             var productCoverted = JsonConvert.DeserializeObject<ProductApiTemplateResource>(JsonConvert.SerializeObject(product));
             
             return new Entity(product.Name, EntityType.Product, product.Properties.DisplayName, productCoverted);
-        }
-
-        internal async Task AddTag(Entity product, Entity tag, string workspace)
-        {
-            var (azToken, azSubId) = await this.Auth.GetAccessToken();
-            string requestUrl = string.Format(AddTagRequest,
-                    this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-                    workspace, product.Id, tag.DisplayName, GlobalConstants.ApiVersion);
-
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-            await this.CallApiManagementAsync(azToken, request);
         }
 
         static dynamic CreateLinkObject(Entity api, string workspace) =>

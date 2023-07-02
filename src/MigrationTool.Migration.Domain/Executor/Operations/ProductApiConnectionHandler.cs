@@ -1,4 +1,5 @@
 ﻿using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Operations;
 using System.Diagnostics.CodeAnalysis;
@@ -7,9 +8,9 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class ProductApiConnectionHandler : OperationHandler
 {
-    private readonly ProductClient productClient;
+    private readonly IProductClient productClient;
 
-    public ProductApiConnectionHandler(ProductClient productClient, EntitiesRegistry registry) : base(registry)
+    public ProductApiConnectionHandler(IProductClient productClient, EntitiesRegistry registry) : base(registry)
     {
         this.productClient = productClient;
     }

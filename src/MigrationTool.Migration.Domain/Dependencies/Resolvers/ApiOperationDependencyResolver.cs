@@ -1,4 +1,5 @@
 ﻿using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,9 @@ namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
 public class ApiOperationDependencyResolver : IEntityDependencyResolver
 {
-    private readonly PolicyRelatedDependenciesResolver policyDependenciesResolver;
-    private readonly ApiClient apiClient;
-    public ApiOperationDependencyResolver(ApiClient apiClient, PolicyRelatedDependenciesResolver policyDependenciesResolver)
+    private readonly IPolicyRelatedDependenciesResolver policyDependenciesResolver;
+    private readonly IApiClient apiClient;
+    public ApiOperationDependencyResolver(IApiClient apiClient, IPolicyRelatedDependenciesResolver policyDependenciesResolver)
     {
         this.apiClient = apiClient;
         this.policyDependenciesResolver = policyDependenciesResolver;

@@ -1,19 +1,13 @@
-﻿//using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Tags;
-using MigrationTool.Migration.Domain.Clients;
+﻿using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
-public class TagsDependencyResolver : IEntityDependencyResolver
+public class TagsDependencyResolver : ITagsDependencyResolver
 {
-    private TagClient Client;
+    private ITagClient Client;
 
-    public TagsDependencyResolver(TagClient client)
+    public TagsDependencyResolver(ITagClient client)
     {
         this.Client = client;
     }

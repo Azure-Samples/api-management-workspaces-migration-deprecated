@@ -1,7 +1,7 @@
-﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ProductApis;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Tags;
+﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Tags;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,7 +9,7 @@ using System.Net.Http.Json;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
-public class TagClient : ClientBase
+public class TagClient : ClientBase, ITagClient
 {
 
     const string FetchEntitiesAssociatedWithTagRequest = "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/tagResources?$filter=tag/name eq '{4}'&api-version={5}";
@@ -20,10 +20,10 @@ public class TagClient : ClientBase
 
     const string IdString = "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.ApiManagement/service/{2}/workspaces/{3}/{4}/{5}";
 
-    private ProductClient _productClient;
-    private ApiClient _apiClient;
+    private IProductClient _productClient;
+    private IApiClient _apiClient;
 
-    public TagClient(IHttpClientFactory httpClientFactory, ExtractorParameters extractorParameters, ProductClient productClient, ApiClient apiClient, AzureCliAuthenticator auth = null) : base(httpClientFactory, extractorParameters, auth)
+    public TagClient(IHttpClientFactory httpClientFactory, ExtractorParameters extractorParameters, IProductClient productClient, IApiClient apiClient, AzureCliAuthenticator auth = null) : base(httpClientFactory, extractorParameters, auth)
     {
         this._productClient = productClient;
         this._apiClient = apiClient;
@@ -63,12 +63,11 @@ public class TagClient : ClientBase
             return await this._productClient.Fetch(id);
         } else
         {
-            //return await this._apiClient.Fetch(innerObject.Value<string>("apiName"));
             var operations = await this._apiClient.FetchOperations(innerObject.Value<string>("apiName"));
             return operations.Where(operation => operation.Id.Equals(id)).First();
         }
     }
-    internal async Task Create(TagTemplateResource resource, string workspaceId)
+    public async Task Create(TagTemplateResource resource, string workspaceId)
     {
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         string requestUrl = string.Format(CreateRequest,
@@ -81,7 +80,7 @@ public class TagClient : ClientBase
         await this.CallApiManagementAsync(azToken, request);
     }
 
-    internal async Task ConnectWithProduct(Entity tag, Entity product, string workspaceId)
+    public async Task ConnectWithProduct(Entity tag, Entity product, string workspaceId)
     {
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         var productId = string.Format(IdString,
@@ -92,7 +91,7 @@ public class TagClient : ClientBase
         await this.Connect(tag, workspaceId, LinkWithProductRequest, payload);
     }
 
-    internal async Task ConnectWithApi(Entity tag, Entity api, string workspaceId)
+    public async Task ConnectWithApi(Entity tag, Entity api, string workspaceId)
     {
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         var apiId = string.Format(IdString,
@@ -103,7 +102,7 @@ public class TagClient : ClientBase
         await this.Connect(tag, workspaceId, LinkWithApiRequest, payload);
     }
 
-    internal async Task ConnectWithApiOperation(Entity tag, OperationEntity apiOperation, string workspaceId)
+    public async Task ConnectWithApiOperation(Entity tag, OperationEntity apiOperation, string workspaceId)
     {
         var (azToken, azSubId) = await this.Auth.GetAccessToken();
         var operationId = string.Format(IdString,

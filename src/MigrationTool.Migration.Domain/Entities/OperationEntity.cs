@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MigrationTool.Migration.Domain.Entities;
 
-internal class OperationEntity : Entity, IEquatable<OperationEntity>
+public class OperationEntity : Entity, IEquatable<OperationEntity>
 {
     public string ApiId { get; }
     public OperationEntity(string id, string apiId)

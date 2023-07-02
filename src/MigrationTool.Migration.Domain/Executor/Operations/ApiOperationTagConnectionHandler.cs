@@ -1,4 +1,5 @@
 ﻿using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Operations;
 using System;
@@ -11,8 +12,8 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class ApiOperationTagConnectionHandler : OperationHandler
 {
-    private TagClient tagClient;
-    public ApiOperationTagConnectionHandler(TagClient tagClient, EntitiesRegistry registry) : base(registry)
+    private ITagClient tagClient;
+    public ApiOperationTagConnectionHandler(ITagClient tagClient, EntitiesRegistry registry) : base(registry)
     {
         this.tagClient = tagClient;
     }

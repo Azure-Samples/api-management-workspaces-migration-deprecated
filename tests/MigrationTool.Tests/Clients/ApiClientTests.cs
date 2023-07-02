@@ -1,10 +1,7 @@
-﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
+﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MigrationTool.Migration.Domain.Clients;
-using MigrationTool.Migration.Domain.Executor.Operations;
 using Moq.Contrib.HttpClient;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -12,16 +9,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MigrationTool.Migration.Domain.Entities;
-using Moq.Protected;
 using Moq;
 using System.Net;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Products;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ProductApis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Policy;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiOperations;
 using MigrationTool.Tests.Helpers;
-using System.Collections;
 using Newtonsoft.Json;
 using FluentAssertions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Tags;
@@ -37,9 +31,9 @@ public class ApiClientTests : BaseTest
     [TestInitialize]
     public void Initialize()
     {
-        this.client = new ApiClient(this.extractorParameters, this.apisClient.Object, this.productsClient.Object, this.apiOperationClient.Object, this.policyClient.Object, this.httpHandler.CreateClientFactory(), this.entitiesRegistry, this.tagClient.Object, this.auth.Object);
+        this.client = new ApiClient(extractorParameters, armApisClient.Object, armProductsClient.Object, armApiOperationClient.Object, armPolicyClient.Object, httpHandler.CreateClientFactory(), entitiesRegistry, armTagClient.Object, auth.Object);
 
-        this.httpHandler.SetupAnyRequest()
+        httpHandler.SetupAnyRequest()
             .ReturnsResponse(HttpStatusCode.OK)
             .Callback<HttpRequestMessage, CancellationToken>((e, c) => { request = e; });
     }
@@ -100,7 +94,7 @@ public class ApiClientTests : BaseTest
     {
         //arrange
         List<ApiTemplateResource> list = new();
-        this.apisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
+        armApisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
 
         //act
         var result = await this.client.FetchAllApisAndVersionSets();
@@ -117,7 +111,7 @@ public class ApiClientTests : BaseTest
         list.Add(new ApiTemplateResource() { Name = "test-api-1;rev=1", OriginalName = "test-original-name-1", Properties = new ApiProperties { DisplayName = "test-api-dn-1" } });
         list.Add(new ApiTemplateResource() { Name = "test-api-2;rev=1", OriginalName = "test-original-name-2", Properties = new ApiProperties { DisplayName = "test-api-dn-2" } });
 
-        this.apisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
+        armApisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
 
         //act
         var result = await this.client.FetchAllApisAndVersionSets();
@@ -137,7 +131,7 @@ public class ApiClientTests : BaseTest
         list.Add(new ApiTemplateResource() { Name = "test-api-1;rev=2", OriginalName = "test-original-name-1;rev=2", Properties = new ApiProperties { DisplayName = "test-api-dn-1" } });
         list.Add(new ApiTemplateResource() { Name = "test-api-1;rev=3", OriginalName = "test-original-name-1;rev=3", Properties = new ApiProperties { DisplayName = "test-api-dn-1" } });
 
-        this.apisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
+        armApisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
 
         //act
         var result = await this.client.FetchAllApisAndVersionSets();
@@ -158,10 +152,10 @@ public class ApiClientTests : BaseTest
         list.Add(new ApiTemplateResource() { Name = "test-api-1;rev=1", OriginalName = "test-original-name-1", Properties = new ApiProperties { DisplayName = "test-api-dn-1", ApiVersionSetId = "/" + versionSetId } });
         list.Add(new ApiTemplateResource() { Name = "test-api-2;rev=1", OriginalName = "test-original-name-2", Properties = new ApiProperties { DisplayName = "test-api-dn-2", ApiVersionSetId = "/" + versionSetId } });
 
-        this.httpHandler.SetupRequest($"https://management.azure.com/{versionSetId}?api-version=2022-09-01-preview")
+        httpHandler.SetupRequest($"https://management.azure.com/{versionSetId}?api-version=2022-09-01-preview")
             .ReturnsResponse(HttpStatusCode.OK, new StringContent(payload, Encoding.UTF8, "application/json"));
 
-        this.apisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
+        armApisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
 
         //act
         var result = await this.client.FetchAllApisAndVersionSets();
@@ -184,7 +178,7 @@ public class ApiClientTests : BaseTest
         list.Add(new ApiTemplateResource() { Name = "test-api-3;rev=2", OriginalName = "test-original-name-3;rev=2", Properties = new ApiProperties { DisplayName = "test-api-dn-3" } });
         list.Add(new ApiTemplateResource() { Name = "test-api-3;rev=3", OriginalName = "test-original-name-3;rev=3", Properties = new ApiProperties { DisplayName = "test-api-dn-3" } });
 
-        this.apisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
+        armApisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
 
         //act
         var result = await this.client.FetchAllApisFlat();
@@ -196,6 +190,29 @@ public class ApiClientTests : BaseTest
     }
 
     [TestMethod]
+    public async Task Fetch()
+    {
+
+        //arrange
+        var versionSetId = "some-versionset";
+        List<ApiTemplateResource> list = new();
+        list.Add(new ApiTemplateResource() { Name = "test-api-1;rev=1", OriginalName = "test-original-name-1", Properties = new ApiProperties { DisplayName = "test-api-dn-1", ApiVersionSetId = "/" + versionSetId } });
+        list.Add(new ApiTemplateResource() { Name = "test-api-2;rev=1", OriginalName = "test-original-name-2", Properties = new ApiProperties { DisplayName = "test-api-dn-2", ApiVersionSetId = "/" + versionSetId } });
+
+        list.Add(new ApiTemplateResource() { Name = "test-api-3;rev=1", OriginalName = "test-original-name-3", Properties = new ApiProperties { DisplayName = "test-api-dn-3" } });
+        list.Add(new ApiTemplateResource() { Name = "test-api-3;rev=2", OriginalName = "test-original-name-3;rev=2", Properties = new ApiProperties { DisplayName = "test-api-dn-3" } });
+        list.Add(new ApiTemplateResource() { Name = "test-api-3;rev=3", OriginalName = "test-original-name-3;rev=3", Properties = new ApiProperties { DisplayName = "test-api-dn-3" } });
+
+        armApisClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>(), It.IsAny<bool>()).Result).Returns(list);
+
+        //act
+        var result = await this.client.Fetch("test-original-name-1");
+
+        //verify
+        Assert.IsTrue(new ArmTemplateComparer().Compare(result.ArmTemplate, list[0]) == 0);
+    }
+
+    [TestMethod]
     public async Task FetchProducts()
     {
         //arange
@@ -203,7 +220,7 @@ public class ApiClientTests : BaseTest
         List<ProductApiTemplateResource> list = new();
         list.Add(new ProductApiTemplateResource() { Name="test-product", Properties = new ProductApiProperties() { Description = "description", DisplayName = "test-product", SubscriptionRequired = true } });
         list.Add(new ProductApiTemplateResource() { Name = "test-product2", Properties = new ProductApiProperties() { Description = "description2", DisplayName = "test-product2", SubscriptionRequired = true } });
-        this.productsClient.Setup(client => client.GetAllLinkedToApiAsync(id, It.IsAny<ExtractorParameters>()).Result).Returns(list);
+        armProductsClient.Setup(client => client.GetAllLinkedToApiAsync(id, It.IsAny<ExtractorParameters>()).Result).Returns(list);
 
         //act
         var result = await this.client.FetchProducts(id);
@@ -220,7 +237,7 @@ public class ApiClientTests : BaseTest
         var content = "test content";
         var policy = new PolicyTemplateResource() { Properties = new PolicyTemplateProperties() { PolicyContent = content } };
 
-        this.policyClient.Setup(client => client.GetPolicyLinkedToApiAsync(id, It.IsAny<ExtractorParameters>()).Result).Returns(policy);
+        armPolicyClient.Setup(client => client.GetPolicyLinkedToApiAsync(id, It.IsAny<ExtractorParameters>()).Result).Returns(policy);
 
         //act
         var result = await this.client.FetchPolicy(id);
@@ -238,13 +255,17 @@ public class ApiClientTests : BaseTest
         list.Add(new ApiOperationTemplateResource() { Name = "operation1-name", Properties = new ApiOperationProperties() { DisplayName = "display-name-1", Method = "POST", Description="some description"} });
         list.Add(new ApiOperationTemplateResource() { Name = "operation2-name", Properties = new ApiOperationProperties() { DisplayName = "display-name-2", Method = "GET", Description = "other description" } });
 
-        this.apiOperationClient.Setup(client => client.GetOperationsLinkedToApiAsync(id, It.IsAny<ExtractorParameters>()).Result).Returns(list);
+        armApiOperationClient.Setup(client => client.GetOperationsLinkedToApiAsync(id, It.IsAny<ExtractorParameters>()).Result).Returns(list);
 
         //act
         var result = await this.client.FetchOperations(id);
 
         //verify
-        CollectionAssert.AreEqual(result.Select(operation => operation.ArmTemplate).ToList(), list, this.comparer);
+        Assert.AreEqual(result.ToList()[0].Id, list[0].Name);
+        Assert.AreEqual(result.ToList()[1].Id, list[1].Name);
+
+        Assert.AreEqual(((OperationEntity) result.ToList()[0]).ApiId, id);
+        Assert.AreEqual(((OperationEntity)result.ToList()[1]).ApiId, id);
     }
 
     [TestMethod]
@@ -256,7 +277,7 @@ public class ApiClientTests : BaseTest
         var content = "test policy";
         var policy = new PolicyTemplateResource() { Properties = new PolicyTemplateProperties() { PolicyContent = content } };
 
-        this.policyClient.Setup(client => client.GetPolicyLinkedToApiOperationAsync(apiId, operationId, It.IsAny<ExtractorParameters>()).Result).Returns(policy);
+        armPolicyClient.Setup(client => client.GetPolicyLinkedToApiOperationAsync(apiId, operationId, It.IsAny<ExtractorParameters>()).Result).Returns(policy);
 
         //act
         var result = await this.client.FetchOperationPolicy(apiId, operationId);
@@ -289,16 +310,16 @@ public class ApiClientTests : BaseTest
         var workspaceId = "some-workspace";
         var locationHeader = "https://management.azure.com/someLocation";
 
-        this.httpHandler.SetupRequest(request => request.RequestUri.Query.Contains("import"))
+        httpHandler.SetupRequest(request => request.RequestUri.Query.Contains("import"))
         .ReturnsResponse(HttpStatusCode.Accepted, response => response.Headers.Add("Location", locationHeader))
         .Callback<HttpRequestMessage, CancellationToken>((e, c) => { request = e; });
 
-        this.httpHandler.SetupRequest(locationHeader)
+        httpHandler.SetupRequest(locationHeader)
             .ReturnsResponse(HttpStatusCode.Created, new StringContent(JsonConvert.SerializeObject(api), Encoding.UTF8, "application/json"));
 
         //act
 
-        var result = await this.client.ImportOpenApiDefinition(apiDefinition, apiId, workspaceId);
+        var result = await client.ImportOpenApiDefinition(apiDefinition, apiId, workspaceId);
 
         //verify
         Assert.AreEqual(request.Method, HttpMethod.Put);
@@ -316,7 +337,7 @@ public class ApiClientTests : BaseTest
         var api = new ApiTemplateResource() { Name = "test-api-1;rev=1", OriginalName = "test-original-name-1", Properties = new ApiProperties { DisplayName = "test-api-dn-1" } };
         var workspaceId = "some-workspace";
         
-        this.httpHandler.SetupAnyRequest()
+        httpHandler.SetupAnyRequest()
         .ReturnsResponse(HttpStatusCode.Created, new StringContent(JsonConvert.SerializeObject(api), Encoding.UTF8, "application/json"))
         .Callback<HttpRequestMessage, CancellationToken>((e, c) => { request = e; });
 
@@ -340,7 +361,7 @@ public class ApiClientTests : BaseTest
         List<TagTemplateResource> list = new();
         list.Add(new TagTemplateResource() { Properties = new TagProperties() { DisplayName = "test-tag" } });
         list.Add(new TagTemplateResource() { Properties = new TagProperties() { DisplayName = "test-tag2" } });
-        this.tagClient.Setup(client => client.GetAllTagsLinkedToApiAsync(id, It.IsAny<ExtractorParameters>()).Result).Returns(list);
+        armTagClient.Setup(client => client.GetAllTagsLinkedToApiAsync(id, It.IsAny<ExtractorParameters>()).Result).Returns(list);
 
         //act
         var result = await this.client.FetchTags(id);
@@ -358,7 +379,7 @@ public class ApiClientTests : BaseTest
         List<TagTemplateResource> list = new();
         list.Add(new TagTemplateResource() { Properties = new TagProperties() { DisplayName = "test-tag" } });
         list.Add(new TagTemplateResource() { Properties = new TagProperties() { DisplayName = "test-tag2" } });
-        this.tagClient.Setup(client => client.GetTagsLinkedToApiOperationAsync(apidId, operationId, It.IsAny<ExtractorParameters>()).Result).Returns(list);
+        armTagClient.Setup(client => client.GetTagsLinkedToApiOperationAsync(apidId, operationId, It.IsAny<ExtractorParameters>()).Result).Returns(list);
 
         //act
         var result = await this.client.FetchOperationTags(apidId, operationId);

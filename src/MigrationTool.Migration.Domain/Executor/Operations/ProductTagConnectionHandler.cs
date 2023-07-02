@@ -1,5 +1,6 @@
 ﻿
 using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Operations;
 
@@ -7,8 +8,8 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class ProductTagConnectionHandler : OperationHandler
 {
-    private TagClient tagClient;
-    public ProductTagConnectionHandler( TagClient tagClient, EntitiesRegistry registry ) : base(registry)
+    private ITagClient tagClient;
+    public ProductTagConnectionHandler( ITagClient tagClient, EntitiesRegistry registry ) : base(registry)
     {
         this.tagClient = tagClient;
     }

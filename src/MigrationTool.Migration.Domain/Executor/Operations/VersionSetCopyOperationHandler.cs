@@ -1,5 +1,6 @@
 ﻿
 using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Extensions;
 using MigrationTool.Migration.Domain.Operations;
@@ -8,9 +9,9 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class VersionSetCopyOperationHandler : OperationHandler
 {
-    private readonly VersionSetClient VersionSetClient;
+    private readonly IVersionSetClient VersionSetClient;
 
-    public VersionSetCopyOperationHandler(VersionSetClient versionSetClient, EntitiesRegistry registry) : base (registry)
+    public VersionSetCopyOperationHandler(IVersionSetClient versionSetClient, EntitiesRegistry registry) : base (registry)
     {
         this.VersionSetClient = versionSetClient;
     }
