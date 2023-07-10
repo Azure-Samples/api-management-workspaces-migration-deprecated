@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
@@ -7,12 +6,14 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Executor.Operations;
+using MT =  Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
-public class ApiClient : ClientBase
+public class ApiClient : ClientBase, IApiClient
 {
     const string CreateApiRequest =
         "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/apis/{5}?api-version={6}";
@@ -35,12 +36,15 @@ public class ApiClient : ClientBase
     const string ImportApiRequest = "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/apis/{5}?import=true&api-version={6}";
 
 
+    const string AddTagRequest =
+        "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/apis/{5}/tags/{6}?api-version={7}";
 
 
     private readonly IApisClient ApisClient;
     private readonly IProductsClient ProductsClient;
     private readonly IApiOperationClient ApiOperationClient;
     private readonly IPolicyClient PolicyClient;
+    private readonly MT.ITagClient TagClient;
 
     public ApiClient(
         ExtractorParameters extractorParameters,
@@ -49,6 +53,7 @@ public class ApiClient : ClientBase
         IPolicyClient policyClient,
         IHttpClientFactory httpClientFactory,
         EntitiesRegistry registry,
+        MT.ITagClient tagClient,
         AzureCliAuthenticator auth = null
         )
         : base(httpClientFactory, extractorParameters, auth)
@@ -57,6 +62,7 @@ public class ApiClient : ClientBase
         this.ProductsClient = productsClient;
         this.ApiOperationClient = apiOperationClient;
         this.PolicyClient = policyClient;
+        this.TagClient = tagClient;
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchAllApisAndVersionSets()
@@ -79,16 +85,23 @@ public class ApiClient : ClientBase
             new Entity(product.Name, EntityType.Product, product.Properties.DisplayName, product));
     }
 
+    public async Task<Entity> Fetch(string apiId)
+    {
+        var apis = await this.FetchAllApisFlat();
+        return apis.Where(api => api.Id.Equals(apiId)).First();
+    }
+
     public async Task<string?> FetchPolicy(string entityId)
     {
         var policy = await this.PolicyClient.GetPolicyLinkedToApiAsync(entityId, this.ExtractorParameters);
         return policy?.Properties?.PolicyContent;
     }
 
-    public Task<IReadOnlyCollection<Entity>> FetchTags(string entityId)
+    public async Task<IReadOnlyCollection<Entity>> FetchTags(string entityId)
     {
-        // TODO: Implement
-        return Task.FromResult<IReadOnlyCollection<Entity>>(new List<Entity>());
+        var tags = await this.TagClient.GetAllTagsLinkedToApiAsync(entityId, this.ExtractorParameters);
+        return tags.ConvertAll(tag =>
+            new Entity(tag.Properties.DisplayName, EntityType.Tag, tag.Properties.DisplayName, tag));
     }
 
     public async Task<IReadOnlyCollection<Entity>> FetchOperations(string entityId)
@@ -96,7 +109,7 @@ public class ApiClient : ClientBase
         var operations =
             await this.ApiOperationClient.GetOperationsLinkedToApiAsync(entityId, this.ExtractorParameters);
          return operations.ConvertAll(operation =>
-            new Entity(operation.Name, EntityType.ApiOperation, operation.Properties.DisplayName, operation));
+            new OperationEntity(operation.Name, entityId));
     }
 
     public async Task<string?> FetchOperationPolicy(string entityId, string operationId)
@@ -106,10 +119,11 @@ public class ApiClient : ClientBase
         return policy?.Properties?.PolicyContent;
     }
 
-    public Task<IReadOnlyCollection<Entity>> FetchOperationTags(string entityId, string operationId)
+    public async Task<IReadOnlyCollection<Entity>> FetchOperationTags(string entityId, string operationId)
     {
-        // TODO: Implement
-        return Task.FromResult<IReadOnlyCollection<Entity>>(new List<Entity>());
+        var tags = await this.TagClient.GetTagsLinkedToApiOperationAsync(entityId, operationId, this.ExtractorParameters);
+        return tags.ConvertAll(tag =>
+            new Entity(tag.Properties.DisplayName, EntityType.Tag, tag.Properties.DisplayName, tag));
     }
 
     public async Task<string> ExportOpenApiDefinition(string apiId)

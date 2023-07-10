@@ -1,13 +1,21 @@
 ﻿using MigrationTool.Migration.Domain.Entities;
+using MigrationTool.Migration.Domain.Executor.Operations;
 using MigrationTool.Migration.Domain.Operations;
 
 namespace MigrationTool.Migration.Domain.Executor;
 
 public abstract class OperationHandler
 {
+
+    public readonly EntitiesRegistry registry;
     public abstract EntityType UsedEntities { get; }
 
     public abstract Type OperationType { get; }
+
+    public OperationHandler(EntitiesRegistry registry = null)
+    {
+        this.registry = registry;
+    }
 
     public abstract Task Handle(IMigrationOperation operation, string workspaceId);
 
@@ -24,5 +32,19 @@ public abstract class OperationHandler
             throw new ArgumentException("Cast type is different then defined in Operation", nameof(TOperation));
 
         return casted;
+    }
+
+    protected bool tryGetNewEntity(ConnectOperation connectOperation, EntityType entityType, out Entity entity)
+    {
+        var originalEntity = connectOperation.Entity.Type == entityType
+            ? connectOperation.Entity
+            : connectOperation.ConnectToEntity;
+        if (!this.registry.TryGetMapping(originalEntity, out var newEntity))
+        {
+            entity = originalEntity;
+            return false;
+        }
+        entity = newEntity;
+        return true;
     }
 }

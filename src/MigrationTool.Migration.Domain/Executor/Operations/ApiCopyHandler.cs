@@ -7,6 +7,7 @@ using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Extensions;
 using MigrationTool.Migration.Domain.Operations;
 using Newtonsoft.Json.Linq;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
 
@@ -14,14 +15,12 @@ public class ApiCopyOperationHandler : OperationHandler
 {
     private static readonly Regex ApiIdWithRevision = new Regex("^(.*);rev=(.*)$");
 
-    private readonly ApiClient apiClient;
-    private readonly EntitiesRegistry registry;
+    private readonly IApiClient apiClient;
     private readonly PolicyModifier policyModifier;
 
-    public ApiCopyOperationHandler(ApiClient apiClient, EntitiesRegistry registry, PolicyModifier policyModifier)
+    public ApiCopyOperationHandler(IApiClient apiClient, EntitiesRegistry registry, PolicyModifier policyModifier) : base (registry)
     {
         this.apiClient = apiClient;
-        this.registry = registry;
         this.policyModifier = policyModifier;
     }
 
@@ -66,6 +65,8 @@ public class ApiCopyOperationHandler : OperationHandler
                 var modifiedPolicy = this.policyModifier.Modify(policy);
                 await this.apiClient.UploadApiOperationPolicy(newApi.Id, originalOperation.Id, modifiedPolicy, workspaceId);
             }
+
+            this.registry.RegisterMapping(originalOperation, new OperationEntity(originalOperation.Id, newApi.Id));
         }
 
         return newApi;

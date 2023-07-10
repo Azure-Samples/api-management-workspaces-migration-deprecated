@@ -9,12 +9,10 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 public class NamedValueCopyHandler : OperationHandler
 {
     private readonly NamedValuesClient namedValuesClient;
-    private readonly EntitiesRegistry registry;
 
-    public NamedValueCopyHandler(NamedValuesClient namedValuesClient, EntitiesRegistry registry)
+    public NamedValueCopyHandler(NamedValuesClient namedValuesClient, EntitiesRegistry registry) : base(registry)
     {
         this.namedValuesClient = namedValuesClient;
-        this.registry = registry;
     }
 
     public override EntityType UsedEntities => EntityType.NamedValue;

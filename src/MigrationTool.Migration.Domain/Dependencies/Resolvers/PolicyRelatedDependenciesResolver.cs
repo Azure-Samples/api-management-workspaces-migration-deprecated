@@ -5,7 +5,7 @@ using MigrationTool.Migration.Domain.Exceptions;
 
 namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
-public class PolicyRelatedDependenciesResolver
+public class PolicyRelatedDependenciesResolver: IPolicyRelatedDependenciesResolver
 {
     private static readonly Regex IncludeFragmentFinder =
         new Regex("<include-fragment.+?fragment-id=\"(.+?)\".+?/>");

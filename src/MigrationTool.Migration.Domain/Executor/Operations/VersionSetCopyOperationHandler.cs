@@ -1,5 +1,6 @@
 ﻿
 using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Extensions;
 using MigrationTool.Migration.Domain.Operations;
@@ -8,13 +9,11 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class VersionSetCopyOperationHandler : OperationHandler
 {
-    private readonly VersionSetClient VersionSetClient;
-    private readonly EntitiesRegistry Registry;
+    private readonly IVersionSetClient VersionSetClient;
 
-    public VersionSetCopyOperationHandler(VersionSetClient versionSetClient, EntitiesRegistry registry)
+    public VersionSetCopyOperationHandler(IVersionSetClient versionSetClient, EntitiesRegistry registry) : base (registry)
     {
         this.VersionSetClient = versionSetClient;
-        this.Registry = registry;
     }
 
     public override EntityType UsedEntities => EntityType.VersionSet;
@@ -30,6 +29,6 @@ public class VersionSetCopyOperationHandler : OperationHandler
         versionSetTemplate.Properties.DisplayName = $"{versionSetTemplate.Properties.DisplayName}-in-{workspaceId}";
         
         var newVersionSet = await this.VersionSetClient.Create(versionSetTemplate, workspaceId);
-        this.Registry.RegisterMapping(originalVersionSet, newVersionSet);
+        this.registry.RegisterMapping(originalVersionSet, newVersionSet);
     }
 }

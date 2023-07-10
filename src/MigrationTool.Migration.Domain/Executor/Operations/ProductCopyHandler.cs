@@ -1,5 +1,8 @@
-﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ProductApis;
+﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Abstractions;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ProductApis;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Products;
 using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Extensions;
 using MigrationTool.Migration.Domain.Operations;
@@ -8,16 +11,14 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class ProductCopyOperationHandler : OperationHandler
 {
-    private readonly ProductClient productClient;
-    private readonly EntitiesRegistry registry;
+    private readonly IProductClient productClient;
     private readonly PolicyModifier policyModifier;
 
-    public ProductCopyOperationHandler(ProductClient productClient,
+    public ProductCopyOperationHandler(IProductClient productClient,
         EntitiesRegistry registry,
-        PolicyModifier policyModifier)
+        PolicyModifier policyModifier) : base (registry)
     {
         this.productClient = productClient;
-        this.registry = registry;
         this.policyModifier = policyModifier;
     }
 

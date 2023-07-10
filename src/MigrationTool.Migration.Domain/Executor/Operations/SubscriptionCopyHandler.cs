@@ -1,7 +1,6 @@
 ﻿using System.Text.RegularExpressions;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.TemplateModels;
-using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Extensions;
 using MigrationTool.Migration.Domain.Operations;
@@ -12,13 +11,11 @@ public class SubscriptionCopyHandler : OperationHandler
 {
     private static readonly Regex ScopeRegex = new Regex("^(.+)/(products|apis)/([^/]+)$");
     
-    private readonly SubscriptionClient subscriptionClient;
-    private readonly EntitiesRegistry registry;
+    private readonly ISubscriptionClient subscriptionClient;
 
-    public SubscriptionCopyHandler(SubscriptionClient subscriptionClient, EntitiesRegistry registry)
+    public SubscriptionCopyHandler(ISubscriptionClient subscriptionClient, EntitiesRegistry registry) : base(registry)
     {
         this.subscriptionClient = subscriptionClient;
-        this.registry = registry;
     }
 
     public override EntityType UsedEntities => EntityType.Subscription;

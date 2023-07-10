@@ -4,13 +4,13 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Api
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ApiVersionSet;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.DataProcessors.Absctraction;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
-using MigrationTool.Migration.Domain.Extensions;
 using System.Net.Http.Json;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
-public class VersionSetClient : ClientBase
+public class VersionSetClient : ClientBase, IVersionSetClient
 {
     const string CreateVersionSetRequest =
         "{0}{1}/?api-version={2}";
@@ -18,11 +18,11 @@ public class VersionSetClient : ClientBase
     const string WorkspaceIdFormat =
         "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.ApiManagement/service/{2}/workspaces/{3}/apiVersionSets/{4}";
 
-    private readonly ApiClient ApiClient;
+    private readonly IApiClient ApiClient;
 
     public VersionSetClient(
         ExtractorParameters extractorParameters,
-        ApiClient apiClient, 
+        IApiClient apiClient, 
         IApiRevisionClient apiRevisionClient,
         IHttpClientFactory httpClientFactory,
         IApiDataProcessor apiDataProcessor

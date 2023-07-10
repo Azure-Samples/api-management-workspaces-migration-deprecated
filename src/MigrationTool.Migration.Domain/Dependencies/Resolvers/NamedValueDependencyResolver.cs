@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 
 namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
@@ -10,13 +11,13 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
     // private static readonly Regex globalRegex = new Regex("^/policies/policy$");
     private static readonly Regex apiRegex = new Regex("^/apis/(.+);rev=(.+)/policies/policy$");
     private static readonly Regex apiOperationRegex = new Regex("^/apis/(.+);rev=(.+)/operations/(.+)/policies/policy$");
-    private static readonly Regex productRegex = new Regex("^/product/(.+)/policies/policy$");
+    private static readonly Regex productRegex = new Regex("^/products/(.+)/policies/policy$");
     // private static readonly Regex workspaceRegex = new Regex("^/workspaces/(.+)/policies/policy$");
 
     private readonly NamedValuesClient namedValuesClient;
-    private readonly ApiClient apiClient;
+    private readonly IApiClient apiClient;
 
-    public NamedValueDependencyResolver(NamedValuesClient namedValuesClient, ApiClient apiClient)
+    public NamedValueDependencyResolver(NamedValuesClient namedValuesClient, IApiClient apiClient)
     {
         this.namedValuesClient = namedValuesClient;
         this.apiClient = apiClient;
@@ -45,26 +46,12 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
 
     private async Task<Entity> TryMatchEntity(string id)
     {
-        // var match = globalRegex.Match(id);
-        // if (match.Success)
-        // {
-        //     entity = new Entity("", EntityType.Global);
-        //     return true;
-        // }
-        //
-        // match = workspaceRegex.Match(id);
-        // if (match.Success)
-        // {
-        //     entity = new Entity(match.Groups[1].Value, EntityType.Workspace);
-        //     return true;
-        // }
-
         Entity entity = null;
         
         var match = apiOperationRegex.Match(id);
         if (match.Success)
         {
-            return await this.getApiById(match.Groups[1].Value);
+            return await this.getOperationById(match.Groups[1].Value, match.Groups[3].Value);
         }
         
         match = apiRegex.Match(id);
@@ -86,8 +73,12 @@ public class NamedValueDependencyResolver : IEntityDependencyResolver
 
     private async Task<Entity> getApiById(string id)
     {
+        return await this.apiClient.Fetch(id);
+    }
 
-        var all = await this.apiClient.FetchAllApisFlat();
-        return all.Where(api => api.Id.Equals(id)).First();
+    private async Task<Entity> getOperationById(string apiId, string operationId)
+    {
+        var operations = await this.apiClient.FetchOperations(apiId);
+        return operations.First(operation => operation.Id == operationId);
     }
 }
