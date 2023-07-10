@@ -23,7 +23,10 @@ public class ApiTagConnectionHandler : OperationHandler
         Entity api;
         Entity tag;
 
-        this.tryGetNewEntity(connectOperation, EntityType.Tag, out tag);
+        if (!this.tryGetNewEntity(connectOperation, EntityType.Tag, out tag))
+        {
+            throw new Exception($"Tag {tag.Id} not found");
+        }
         if (!this.tryGetNewEntity(connectOperation, EntityType.Api, out api))
         {
             throw new Exception($"Api {api.Id} not found");

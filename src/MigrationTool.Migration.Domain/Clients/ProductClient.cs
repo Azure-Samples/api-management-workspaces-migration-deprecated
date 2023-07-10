@@ -8,6 +8,7 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.
 using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using Newtonsoft.Json;
+using ARM = Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
 
 namespace MigrationTool.Migration.Domain.Clients
 {
@@ -38,7 +39,7 @@ namespace MigrationTool.Migration.Domain.Clients
         private readonly IPolicyClient PolicyClient;
         private readonly IApiRevisionClient ApiRevisionClient;
         private readonly IApiDataProcessor ApiDataProcessor;
-        private readonly Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions.ITagClient TagClient;
+        private readonly ARM.ITagClient TagClient;
         private readonly IProductsClient ProductsClient;
 
         public ProductClient(ExtractorParameters extractorParameters,
@@ -48,7 +49,7 @@ namespace MigrationTool.Migration.Domain.Clients
             IApiRevisionClient apiRevisionClient,
             IApiDataProcessor apiDataProcessor,
             IProductsClient productsClient,
-            Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions.ITagClient tagClient,
+            ARM.ITagClient tagClient,
             AzureCliAuthenticator auth = null)
             : base(httpClientFactory, extractorParameters, auth)
         {
@@ -99,7 +100,7 @@ namespace MigrationTool.Migration.Domain.Clients
         {
             var tags = await this.TagClient.GetAllTagsLinkedToProductAsync(entityId, this.ExtractorParameters);
             return tags.ConvertAll(tag =>
-                new Entity(tag.Properties.DisplayName, EntityType.Tag, tag.Properties.DisplayName, tag));
+                new Entity(tag.Name, EntityType.Tag, tag.Properties.DisplayName, tag));
         }
 
         public Task<IReadOnlyCollection<Entity>> FetchGroups(string entityId)

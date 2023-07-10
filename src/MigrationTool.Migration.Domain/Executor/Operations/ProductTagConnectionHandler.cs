@@ -24,7 +24,10 @@ public class ProductTagConnectionHandler : OperationHandler
         Entity product;
         Entity tag;
 
-        this.tryGetNewEntity(connectOperation, EntityType.Tag, out tag);
+        if (!this.tryGetNewEntity(connectOperation, EntityType.Tag, out tag))
+        {
+            throw new Exception($"Tag {tag.Id} not found");
+        }
         if (!this.tryGetNewEntity(connectOperation, EntityType.Product, out product))
         {
             throw new Exception($"Product {product.Id} not found");

@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
@@ -10,6 +9,7 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities;
 using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Executor.Operations;
+using MT =  Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
@@ -44,7 +44,7 @@ public class ApiClient : ClientBase, IApiClient
     private readonly IProductsClient ProductsClient;
     private readonly IApiOperationClient ApiOperationClient;
     private readonly IPolicyClient PolicyClient;
-    private readonly Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions.ITagClient TagClient;
+    private readonly MT.ITagClient TagClient;
 
     public ApiClient(
         ExtractorParameters extractorParameters,
@@ -53,7 +53,7 @@ public class ApiClient : ClientBase, IApiClient
         IPolicyClient policyClient,
         IHttpClientFactory httpClientFactory,
         EntitiesRegistry registry,
-        Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions.ITagClient tagClient,
+        MT.ITagClient tagClient,
         AzureCliAuthenticator auth = null
         )
         : base(httpClientFactory, extractorParameters, auth)

@@ -4,10 +4,11 @@ using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Gat
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities.DataProcessors.Absctraction;
 using MigrationTool.Migration.Domain.Entities;
+using MT = MigrationTool.Migration.Domain.Clients.Abstraction;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
-public class GatewayClient : ClientBase, MigrationTool.Migration.Domain.Clients.Abstraction.IGatewayClient
+public class GatewayClient : ClientBase, MT.IGatewayClient
 {
     private IGatewayClient gatewayClient;
     private IApiDataProcessor apiDataProcessor;
