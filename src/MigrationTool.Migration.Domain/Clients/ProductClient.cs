@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.ProductApis;
@@ -35,11 +36,15 @@ namespace MigrationTool.Migration.Domain.Clients
         const string AddTagRequest =
             "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/products/{5}/tags/{6}?api-version={7}";
 
+        //const string FetchGroupsRequest =
+        //    "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/products/{4}/groups/{5}?api-version={6}";
+
         private readonly IApisClient ApisClient;
         private readonly IPolicyClient PolicyClient;
         private readonly IApiRevisionClient ApiRevisionClient;
         private readonly IApiDataProcessor ApiDataProcessor;
         private readonly ARM.ITagClient TagClient;
+        private readonly ARM.IGroupsClient GroupsClient;
         private readonly IProductsClient ProductsClient;
 
         public ProductClient(ExtractorParameters extractorParameters,
@@ -50,6 +55,7 @@ namespace MigrationTool.Migration.Domain.Clients
             IApiDataProcessor apiDataProcessor,
             IProductsClient productsClient,
             ARM.ITagClient tagClient,
+            ARM.IGroupsClient groupsClient,
             AzureCliAuthenticator auth = null)
             : base(httpClientFactory, extractorParameters, auth)
         {
@@ -59,6 +65,7 @@ namespace MigrationTool.Migration.Domain.Clients
             this.ApiDataProcessor = apiDataProcessor;
             this.TagClient = tagClient;
             this.ProductsClient = productsClient;
+            this.GroupsClient = groupsClient;
         }
 
         public async Task<IReadOnlyCollection<Entity>> FetchApis(string entityId)
@@ -103,10 +110,10 @@ namespace MigrationTool.Migration.Domain.Clients
                 new Entity(tag.Name, EntityType.Tag, tag.Properties.DisplayName, tag));
         }
 
-        public Task<IReadOnlyCollection<Entity>> FetchGroups(string entityId)
+        public async Task<IReadOnlyCollection<Entity>> FetchGroups(string entityId)
         {
-            // TODO: Implement
-            return Task.FromResult<IReadOnlyCollection<Entity>>(new List<Entity>());
+            var groups = await this.GroupsClient.GetAllLinkedToProductAsync(entityId, this.ExtractorParameters);
+            return groups.FindAll(g => g.Name != "administrators").ToList().ConvertAll(group => new Entity(group.Name, EntityType.Group, group.Properties.DisplayName, group));
         }
 
         public async Task UploadProductPolicy(Entity product, string policy, string workspace)
@@ -151,7 +158,7 @@ namespace MigrationTool.Migration.Domain.Clients
                     this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
                     productWorkspace, product.Id, Guid.NewGuid(), GlobalConstants.ApiVersion);
             }
-            dynamic obj = CreateLinkObject(api, apiWorkspace);
+            dynamic obj = CreateLinkObject(api, apiWorkspace, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = JsonContent.Create(obj, options: DefaultSerializerOptions);
             await this.CallApiManagementAsync(azToken, request);
@@ -159,20 +166,23 @@ namespace MigrationTool.Migration.Domain.Clients
 
         public async Task<Entity> Fetch(string id)
         {
-            var products = await this.ProductsClient.GetAllAsync(this.ExtractorParameters);
-            var product = products.Where(product => product.Name.Equals(id)).First();
-            var productCoverted = JsonConvert.DeserializeObject<ProductApiTemplateResource>(JsonConvert.SerializeObject(product));
-            
-            return new Entity(product.Name, EntityType.Product, product.Properties.DisplayName, productCoverted);
+            var products = await this.FetchAll();
+            return products.Where(product => product.Id.Equals(id)).First();
         }
 
-        static dynamic CreateLinkObject(Entity api, string workspace) =>
+        static dynamic CreateLinkObject(Entity api, string workspace, string subscription, string resourceGroup, string service) =>
             new
             {
                 properties = new
                 {
-                    apiId = $"/workspaces/{workspace}/apis/{api.Id}"
+                    apiId = $"/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/Microsoft.ApiManagement/service/{service}/workspaces/{workspace}/apis/{api.Id}"
                 }
             };
+
+        public async Task<IReadOnlyCollection<Entity>> FetchAll()
+        {
+            var products = await this.ProductsClient.GetAllAsync(this.ExtractorParameters);
+            return products.ConvertAll(product => new Entity(product.Name, EntityType.Product, product.Properties.DisplayName, product));
+        }
     }
 }

@@ -20,7 +20,7 @@ public class ProductClientTests : BaseTest
     [TestInitialize]
     public void Initialize()
     {
-        this.client = new ProductClient(extractorParameters, armApisClient.Object, armPolicyClient.Object, httpHandler.CreateClientFactory(), armApiRevisionClient.Object, armApiDataProcessor, armProductsClient.Object, armTagClient.Object, auth.Object);
+        this.client = new ProductClient(extractorParameters, armApisClient.Object, armPolicyClient.Object, httpHandler.CreateClientFactory(), armApiRevisionClient.Object, armApiDataProcessor, armProductsClient.Object, armTagClient.Object, armGroupsClient.Object, auth.Object);
     }
 
     [TestMethod]
@@ -72,5 +72,22 @@ public class ProductClientTests : BaseTest
 
         //verify
         Assert.AreEqual(0, this.comparer.Compare(result.ArmTemplate, list[0]));
+    }
+
+    [TestMethod]
+    public async Task FetchAll()
+    {
+        //arrange
+        List<ProductsTemplateResource> list = new();
+        list.Add(new ProductsTemplateResource() { Name = "test-product-1", Properties = new ProductsProperties() { DisplayName = "test-product-dn-1", ApprovalRequired = true, SubscriptionRequired = true, Name = null } });
+        list.Add(new ProductsTemplateResource() { Name = "test-product-2", Properties = new ProductsProperties() { DisplayName = "test-product-dn-2", ApprovalRequired = true, SubscriptionRequired = true, Name = null } });
+
+        armProductsClient.Setup(client => client.GetAllAsync(It.IsAny<ExtractorParameters>()).Result).Returns(list);
+
+        //act
+        var result = await this.client.FetchAll();
+
+        //verify
+        CollectionAssert.AreEqual(result.ToList().Select(product => product.ArmTemplate).ToList(), list, this.comparer);
     }
 }

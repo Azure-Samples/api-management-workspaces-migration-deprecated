@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using CommandLine;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Commands.Configurations;
@@ -14,7 +13,6 @@ using MigrationTool.Migration.Domain.Planner;
 using Sharprompt;
 using MigrationTool.Migration.Domain.Operations;
 using System.Configuration;
-using Sharprompt.Fluent;
 using MigrationTool.Migration.Domain.Dependencies.Resolvers;
 using MigrationTool.Migration.Domain.Executor.Operations;
 using MigrationTool.Migration.Domain.Clients.Abstraction;
@@ -127,6 +125,7 @@ public class Program
         collection.AddSingleton<IVersionSetClient, VersionSetClient>();
         collection.AddSingleton<IGatewayClient, GatewayClient>();
         collection.AddSingleton<ITagClient, TagClient>();
+        collection.AddSingleton<IGroupsClient, GroupsClient>();
 
         collection.AddSingleton<IPolicyRelatedDependenciesResolver, PolicyRelatedDependenciesResolver>();
         collection.AddSingleton<DependencyService, DependencyService>();
@@ -137,8 +136,7 @@ public class Program
         collection.AddSingleton<IEntityDependencyResolver, TagsDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver, ApiOperationDependencyResolver>();
         collection.AddSingleton<ITagsDependencyResolver, TagsDependencyResolver>();
-        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Group));
-        //collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.ApiOperation));
+        collection.AddSingleton<IEntityDependencyResolver, GroupDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.PolicyFragment));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Subscription));
 
@@ -147,8 +145,10 @@ public class Program
         collection.AddSingleton<PolicyModifier, PolicyModifier>();
         collection.AddSingleton<MigrationPlanExecutor, MigrationPlanExecutor>();
         collection.AddSingleton<OperationHandler, ApiCopyOperationHandler>();
+        collection.AddSingleton<OperationHandler, GroupCopyHandler>();
         collection.AddSingleton<OperationHandler, ProductCopyOperationHandler>();
         collection.AddSingleton<OperationHandler, ProductApiConnectionHandler>();
+        collection.AddSingleton<OperationHandler, ProductGroupConnectionHandler>();
         collection.AddSingleton<OperationHandler, SubscriptionCopyHandler>();
         collection.AddSingleton<OperationHandler, VersionSetCopyOperationHandler>();
         collection.AddSingleton<OperationHandler, ProductTagConnectionHandler>();
