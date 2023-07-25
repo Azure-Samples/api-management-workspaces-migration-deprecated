@@ -36,6 +36,7 @@ public class BaseTest
     protected Mock<IVersionSetClient> versionSetClient = new Mock<IVersionSetClient>();
     protected Mock<ITagsDependencyResolver> tagsDependencyResolver = new Mock<ITagsDependencyResolver>();
     protected Mock<ITagClient> tagClient = new Mock<ITagClient>();
+    protected Mock<IGroupsClient> groupsClient = new Mock<IGroupsClient>();
 
     protected IComparer comparer = new ArmTemplateComparer();
 

@@ -36,7 +36,7 @@ public class GroupsClient : ClientBase, IGroupsClient
 
         string requestUrl = string.Format(LinkWithProductRequest,
             this.BaseUrl, azSubId, this.ExtractorParameters.ResourceGroup, this.ExtractorParameters.SourceApimName,
-            workspaceId, product.DisplayName, Guid.NewGuid().ToString(), GlobalConstants.ApiVersion);
+            workspaceId, product.Id, Guid.NewGuid().ToString(), GlobalConstants.ApiVersion);
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
         request.Content = JsonContent.Create(payload, options: DefaultSerializerOptions);

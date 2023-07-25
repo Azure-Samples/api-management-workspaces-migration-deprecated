@@ -5,8 +5,6 @@ using MigrationTool.Migration.Domain.Operations;
 using System.Threading.Tasks;
 using Moq;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Tags;
-using System.Net.Http;
-using System.Threading;
 
 namespace MigrationTool.Tests.Handlers;
 
