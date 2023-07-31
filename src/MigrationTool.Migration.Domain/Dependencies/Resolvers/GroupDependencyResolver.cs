@@ -14,6 +14,6 @@ public class GroupDependencyResolver : IEntityDependencyResolver
 
     public Task<IReadOnlyCollection<Entity>> ResolveDependencies(Entity entity)
     {
-        return this._groupsClient.FetchEntities(entity.Id);
+        return this._groupsClient.FetchProducts(entity.Id);
     }
 }

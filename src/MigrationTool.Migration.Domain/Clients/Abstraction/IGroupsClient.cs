@@ -5,7 +5,7 @@ namespace MigrationTool.Migration.Domain.Clients.Abstraction;
 
 public interface IGroupsClient
 {
-    public Task<IReadOnlyCollection<Entity>> FetchEntities(string groupId);
+    public Task<IReadOnlyCollection<Entity>> FetchProducts(string groupId);
 
     public Task<Entity> Create(GroupTemplateResource resource, string workspaceId);
 

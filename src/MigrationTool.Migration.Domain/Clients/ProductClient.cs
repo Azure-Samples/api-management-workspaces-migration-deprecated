@@ -35,10 +35,7 @@ namespace MigrationTool.Migration.Domain.Clients
 
         const string AddTagRequest =
             "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/workspaces/{4}/products/{5}/tags/{6}?api-version={7}";
-
-        //const string FetchGroupsRequest =
-        //    "{0}/subscriptions/{1}/resourceGroups/{2}/providers/Microsoft.ApiManagement/service/{3}/products/{4}/groups/{5}?api-version={6}";
-
+=
         private readonly IApisClient ApisClient;
         private readonly IPolicyClient PolicyClient;
         private readonly IApiRevisionClient ApiRevisionClient;

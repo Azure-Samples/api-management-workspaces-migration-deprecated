@@ -27,8 +27,6 @@ public class GroupsClientTests : BaseTest
     {
         this.client = new GroupsClient(productClient.Object, httpHandler.CreateClientFactory(), extractorParameters, auth.Object);
 
-        //this.client.FetchEntities
-
         httpHandler.SetupAnyRequest()
             .ReturnsResponse(HttpStatusCode.OK)
             .Callback<HttpRequestMessage, CancellationToken>((e, c) => { request = e; });
@@ -80,7 +78,7 @@ public class GroupsClientTests : BaseTest
 
 
         //act
-        var result = await this.client.FetchEntities(groupId);
+        var result = await this.client.FetchProducts(groupId);
 
         //verify
         CollectionAssert.AreEqual(result.Select(product => product).ToList(), products.GetRange(0,2));

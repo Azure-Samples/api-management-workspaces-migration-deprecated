@@ -1,14 +1,10 @@
-﻿//using ARM = Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.API.Clients.Abstractions;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Groups;
+﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Groups;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Extensions;
 using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using System.Net.Http.Json;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Models;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Extractor.Utilities;
-using System;
-using YamlDotNet.Core.Tokens;
-using System.Security.Policy;
 
 namespace MigrationTool.Migration.Domain.Clients;
 
@@ -56,7 +52,7 @@ public class GroupsClient : ClientBase, IGroupsClient
         return new Entity(armTemplate.Name, EntityType.Group, armTemplate.Properties.DisplayName, armTemplate);
     }
 
-    public async Task<IReadOnlyCollection<Entity>> FetchEntities(string groupId)
+    public async Task<IReadOnlyCollection<Entity>> FetchProducts(string groupId)
     {
         List<Entity> results = new();
         var products = await this._productClient.FetchAll();
