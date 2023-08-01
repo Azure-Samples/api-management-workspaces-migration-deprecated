@@ -24,4 +24,6 @@ public interface IProductClient
     public Task AddApi(Entity product, Entity api, string productWorkspace, string apiWorkspace);
 
     public Task<Entity> Fetch(string id);
+
+    public Task<IReadOnlyCollection<Entity>> FetchAll();
 }

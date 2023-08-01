@@ -26,6 +26,7 @@ public class BaseTest
     protected Mock<AzureCliAuthenticator> auth = new Mock<AzureCliAuthenticator>();
     protected Mock<ARM.ITagClient> armTagClient = new Mock<ARM.ITagClient>();
     protected Mock<ARM.IApiRevisionClient> armApiRevisionClient = new Mock<ARM.IApiRevisionClient>();
+    protected Mock<ARM.IGroupsClient> armGroupsClient = new Mock<ARM.IGroupsClient>();
     protected IApiDataProcessor armApiDataProcessor = new ApiDataProcessor();
     protected Mock<IApiClient> apiClient = new Mock<IApiClient>();
     protected Mock<IProductClient> productClient = new Mock<IProductClient>();
@@ -35,6 +36,7 @@ public class BaseTest
     protected Mock<IVersionSetClient> versionSetClient = new Mock<IVersionSetClient>();
     protected Mock<ITagsDependencyResolver> tagsDependencyResolver = new Mock<ITagsDependencyResolver>();
     protected Mock<ITagClient> tagClient = new Mock<ITagClient>();
+    protected Mock<IGroupsClient> groupsClient = new Mock<IGroupsClient>();
 
     protected IComparer comparer = new ArmTemplateComparer();
 

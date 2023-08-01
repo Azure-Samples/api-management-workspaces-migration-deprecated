@@ -14,7 +14,7 @@ public class DependencyGraphBuilder
         { EntityType.Api, EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment };
 
     private static readonly IReadOnlySet<EntityType> ProductInboundTypes = new HashSet<EntityType>()
-        { EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment };
+        { EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment, EntityType.Group };
 
     private readonly DependencyService dependencyService;
 
