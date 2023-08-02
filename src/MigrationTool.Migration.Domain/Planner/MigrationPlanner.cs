@@ -55,7 +55,7 @@ public static class MigrationPlanner
 
     private static bool ShouldCopy(Entity entity)
     {
-        return entity.Type != EntityType.ApiOperation;
+        return entity.Type != EntityType.ApiOperation && entity.Type != EntityType.User;
     }
 
     private static bool ShouldConnect(Entity entity, Entity connections)
