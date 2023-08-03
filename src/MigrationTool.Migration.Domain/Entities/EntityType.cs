@@ -20,4 +20,6 @@ public enum EntityType
     Tag = 1 << 7,
     [Description("Version Set")]
     VersionSet = 1 << 8,
+    [Description("User")]
+    User = 1 << 9,
 }

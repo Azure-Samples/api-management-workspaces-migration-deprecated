@@ -101,4 +101,21 @@ public class GroupsClientTests : BaseTest
         var body = await request.Content.ReadAsStringAsync();
         body.Should().Contain(group.Id);
     }
+
+    [TestMethod]
+    public async Task ConnectWithUser()
+    {
+
+        //arrange
+        var workspaceId = "workspace-id";
+        var group = new Entity("group-id", EntityType.Group);
+        var user = new Entity("user-id", EntityType.User);
+
+        //act
+        await this.client.ConnectWithUser(group, user, workspaceId);
+
+        //verify
+        Assert.AreEqual(request.Method, HttpMethod.Put);
+        request.RequestUri.PathAndQuery.Should().Contain($"/workspaces/{workspaceId}/groups/{group.Id}/users/{user.Id}");
+    }
 }

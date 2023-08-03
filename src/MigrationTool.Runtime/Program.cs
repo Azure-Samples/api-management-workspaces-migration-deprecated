@@ -139,6 +139,7 @@ public class Program
         collection.AddSingleton<IEntityDependencyResolver, GroupDependencyResolver>();
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.PolicyFragment));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Subscription));
+        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.User));
 
         collection.AddSingleton<DependencyGraphBuilder, DependencyGraphBuilder>();
         collection.AddSingleton<EntitiesRegistry, EntitiesRegistry>();
@@ -148,6 +149,7 @@ public class Program
         collection.AddSingleton<OperationHandler, GroupCopyHandler>();
         collection.AddSingleton<OperationHandler, ProductCopyOperationHandler>();
         collection.AddSingleton<OperationHandler, ProductApiConnectionHandler>();
+        collection.AddSingleton<OperationHandler, UserGroupConnectionHandler>();
         collection.AddSingleton<OperationHandler, ProductGroupConnectionHandler>();
         collection.AddSingleton<OperationHandler, SubscriptionCopyHandler>();
         collection.AddSingleton<OperationHandler, VersionSetCopyOperationHandler>();

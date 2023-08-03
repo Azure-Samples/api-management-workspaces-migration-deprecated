@@ -80,7 +80,6 @@ namespace MigrationTool.Migration.Domain.Clients
             var policy = await this.PolicyClient.GetPolicyLinkedToProductAsync(entityId, this.ExtractorParameters);
             return policy?.Properties?.PolicyContent;
         }
-
         public async Task<Entity> CreateProduct(ProductApiTemplateResource resource, string workspace) =>
             await this.CreateOrUpdateProduct(resource, workspace);
 
