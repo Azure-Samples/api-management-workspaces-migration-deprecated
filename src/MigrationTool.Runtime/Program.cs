@@ -118,7 +118,7 @@ public class Program
 
         collection.AddSingleton<IApiClient, ApiClient>();
         collection.AddSingleton<NamedValuesClient, NamedValuesClient>();
-        collection.AddSingleton<PolicyFragmentsClient, PolicyFragmentsClient>();
+        collection.AddSingleton<IPolicyFragmentClient, PolicyFragmentClient>();
         collection.AddSingleton<IProductClient, ProductClient>();
         collection.AddSingleton<WorkspaceClient, WorkspaceClient>();
         collection.AddSingleton<ISubscriptionClient, SubscriptionClient>();
@@ -165,6 +165,11 @@ public class Program
         collection.AddSingleton<OperationHandler, NamedValueCopyHandler>();
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.Api | EntityType.NamedValue, typeof(ConnectOperation)));
+
+        collection.AddSingleton<OperationHandler, PolicyFragmentsCopyHandler>();
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.Api | EntityType.PolicyFragment, typeof(ConnectOperation)));
+
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.ApiOperation | EntityType.NamedValue, typeof(ConnectOperation)));
         collection.AddSingleton<OperationHandler>(_ =>

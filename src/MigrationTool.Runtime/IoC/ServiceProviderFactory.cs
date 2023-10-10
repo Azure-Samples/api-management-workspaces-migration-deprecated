@@ -39,7 +39,7 @@ namespace MigrationTool.IoC
 
             collection.AddSingleton<ApiClient, ApiClient>();
             collection.AddSingleton<NamedValuesClient, NamedValuesClient>();
-            collection.AddSingleton<PolicyFragmentsClient, PolicyFragmentsClient>();
+            collection.AddSingleton<PolicyFragmentClient, PolicyFragmentClient>();
             collection.AddSingleton<ProductClient, ProductClient>();
             collection.AddSingleton<WorkspaceClient, WorkspaceClient>();
             collection.AddSingleton<SubscriptionClient, SubscriptionClient>();

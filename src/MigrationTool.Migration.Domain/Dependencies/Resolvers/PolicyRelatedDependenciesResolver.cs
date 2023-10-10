@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using MigrationTool.Migration.Domain.Clients;
+using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Exceptions;
 
@@ -14,10 +15,10 @@ public class PolicyRelatedDependenciesResolver: IPolicyRelatedDependenciesResolv
     private static readonly Regex BackendFinder = new Regex("<set-backend-service.+?(backend-id|base-url)=\".+?\".+?\\/>");
 
     private readonly NamedValuesClient namedValuesClient;
-    private readonly PolicyFragmentsClient policyFragmentsClient;
+    private readonly IPolicyFragmentClient policyFragmentsClient;
 
     public PolicyRelatedDependenciesResolver(NamedValuesClient namedValuesClient,
-        PolicyFragmentsClient policyFragmentsClient)
+        IPolicyFragmentClient policyFragmentsClient)
     {
         this.namedValuesClient = namedValuesClient;
         this.policyFragmentsClient = policyFragmentsClient;

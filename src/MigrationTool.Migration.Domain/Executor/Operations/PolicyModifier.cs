@@ -37,9 +37,19 @@ public class PolicyModifier
             var matchGroup = match.Groups[1];
             if (this.registry.TryGetMapping(entityType, matchGroup.Value, out var entity))
             {
+                string toBeInserted = "";
+                switch(entityType)
+                {
+                    case EntityType.NamedValue:
+                        toBeInserted = ((NamedValueTemplateResource)entity.ArmTemplate).Properties.DisplayName; break;
+                    case EntityType.PolicyFragment:
+                        toBeInserted = entity.DisplayName; break;
+                    default:
+                        throw new Exception("Provided entity type does not match any known entity that can be present in the policy");
+                }
                 policy = policy
                     .Remove(matchGroup.Index, matchGroup.Length)
-                    .Insert(matchGroup.Index, ((NamedValueTemplateResource)entity.ArmTemplate).Properties.DisplayName);
+                    .Insert(matchGroup.Index, toBeInserted);
             }
         }
 
