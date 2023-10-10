@@ -37,6 +37,8 @@ public class BaseTest
     protected Mock<ITagsDependencyResolver> tagsDependencyResolver = new Mock<ITagsDependencyResolver>();
     protected Mock<ITagClient> tagClient = new Mock<ITagClient>();
     protected Mock<IGroupsClient> groupsClient = new Mock<IGroupsClient>();
+    protected Mock<IPolicyFragmentClient> policyFragmentClient = new Mock<IPolicyFragmentClient>();
+    protected Mock<ARM.IPolicyFragmentsClient> armPolicyFragmentsClient = new Mock<ARM.IPolicyFragmentsClient>();
 
     protected IComparer comparer = new ArmTemplateComparer();
 

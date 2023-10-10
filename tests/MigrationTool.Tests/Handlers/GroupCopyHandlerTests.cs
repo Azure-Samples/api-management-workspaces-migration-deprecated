@@ -1,5 +1,4 @@
 ﻿using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Groups;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Tags;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Executor.Operations;
