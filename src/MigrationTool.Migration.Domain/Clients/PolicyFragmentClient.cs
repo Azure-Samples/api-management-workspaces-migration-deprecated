@@ -46,8 +46,6 @@ public class PolicyFragmentClient : ClientBase, IPolicyFragmentClient
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
         request.Content = JsonContent.Create(resource, options: DefaultSerializerOptions);
         await this.CallApiManagementAsync(azToken, request);
-        //var response = await this.GetResponseBodyAsync(azToken, request);
-        //var armTemplate = response.Deserialize<PolicyFragmentsResource>();
         return new Entity(resource.Name, EntityType.PolicyFragment, resource.Name, resource);
     }
 

@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.PolicyFragments;
 using MigrationTool.Migration.Domain.Clients;
 using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
@@ -26,19 +27,37 @@ public class PolicyRelatedDependenciesResolver: IPolicyRelatedDependenciesResolv
 
     public async Task<IReadOnlyCollection<Entity>> Resolve(string policy)
     {
-        this.ResolveBackends(policy);
         var dependencies = new HashSet<Entity>();
-        dependencies.UnionWith(await this.ResolveNamedValues(policy));
+        dependencies.UnionWith(await this.ResolvePolicyContent(policy));
         dependencies.UnionWith(await this.ResolvePolicyFragments(policy));
         return dependencies;
     }
 
-    private Task<IReadOnlyCollection<Entity>> ResolvePolicyFragments(string policy)
+    private async Task<IReadOnlyCollection<Entity>> ResolvePolicyContent(string policy)
+    {
+        this.ResolveBackends(policy);
+        var dependencies = new HashSet<Entity>();
+        dependencies.UnionWith(await this.ResolveNamedValues(policy));
+        return dependencies;
+    }
+
+    private async Task<IReadOnlyCollection<Entity>> ResolvePolicyFragments(string policy)
     {
         var policyFragmentsNames = this.ExtractPolicyFragmentNames(policy);
-        return policyFragmentsNames.Count != 0
-            ? this.policyFragmentsClient.Fetch(policyFragmentsNames)
-            : Task.FromResult<IReadOnlyCollection<Entity>>(new List<Entity>());
+        if (policyFragmentsNames.Count == 0)
+        {
+            return new List<Entity>(); 
+        }
+        else
+        {
+            var fragments = await this.policyFragmentsClient.Fetch(policyFragmentsNames);
+            var dependencies = new HashSet<Entity>();
+            foreach (var fragment in fragments)
+            {
+                dependencies.UnionWith(await this.ResolvePolicyContent(((PolicyFragmentsResource)fragment.ArmTemplate).Properties.Value));
+            }
+            return dependencies;
+        }        
     }
 
     private IReadOnlyCollection<string> ExtractPolicyFragmentNames(string policy) =>
