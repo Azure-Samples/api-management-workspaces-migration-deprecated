@@ -1,8 +1,6 @@
-﻿using MigrationTool.Migration.Domain.Clients;
-using MigrationTool.Migration.Domain.Clients.Abstraction;
+﻿using MigrationTool.Migration.Domain.Clients.Abstraction;
 using MigrationTool.Migration.Domain.Entities;
 using MigrationTool.Migration.Domain.Operations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
 
