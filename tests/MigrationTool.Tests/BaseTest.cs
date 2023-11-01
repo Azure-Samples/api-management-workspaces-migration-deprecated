@@ -39,6 +39,8 @@ public class BaseTest
     protected Mock<IGroupsClient> groupsClient = new Mock<IGroupsClient>();
     protected Mock<IPolicyFragmentClient> policyFragmentClient = new Mock<IPolicyFragmentClient>();
     protected Mock<ARM.IPolicyFragmentsClient> armPolicyFragmentsClient = new Mock<ARM.IPolicyFragmentsClient>();
+    protected Mock<ISchemasClient> schemasClient = new Mock<ISchemasClient>();
+    protected Mock<ARM.ISchemasClient> armSchemasClient = new Mock<ARM.ISchemasClient>();
 
     protected IComparer comparer = new ArmTemplateComparer();
 
