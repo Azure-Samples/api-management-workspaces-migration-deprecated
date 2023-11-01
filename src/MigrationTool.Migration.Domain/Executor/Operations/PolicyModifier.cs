@@ -7,12 +7,6 @@ namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class PolicyModifier
 {
-    //private static readonly Regex IncludeFragmentFinder =
-    //    new Regex("<include-fragment\\s*fragment-id=\"([^\"]*)\"\\s*/>");
-    //private static readonly Regex NamedValueFinder = new Regex("{{([^{}]*)}}");
-    //private static readonly Regex SchemaFinder =
-    //    new Regex("<include-fragment\\s*fragment-id=\"([^\"]*)\"\\s*/>");
-
     private readonly EntitiesRegistry registry;
 
     public PolicyModifier(EntitiesRegistry registry)
