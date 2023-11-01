@@ -9,20 +9,28 @@ namespace MigrationTool.Migration.Domain.Dependencies.Resolvers;
 
 public class PolicyRelatedDependenciesResolver: IPolicyRelatedDependenciesResolver
 {
-    private static readonly Regex IncludeFragmentFinder =
+    public static readonly Regex IncludeFragmentFinder =
         new Regex("<include-fragment.+?fragment-id=\"(.+?)\".+?/>");
 
-    private static readonly Regex NamedValueFinder = new Regex("{{([^{}]*)}}");
+    public static readonly Regex IncludeSchemaFinder =
+        new Regex("<content.+?schema-id=\"(.+?)\".+?/>");
+
+    public static readonly Regex NamedValueFinder = new Regex("{{([^{}]*)}}");
     private static readonly Regex BackendFinder = new Regex("<set-backend-service.+?(backend-id|base-url)=\".+?\".+?\\/>");
 
     private readonly NamedValuesClient namedValuesClient;
     private readonly IPolicyFragmentClient policyFragmentsClient;
+    private readonly ISchemasClient schemasClient;
 
-    public PolicyRelatedDependenciesResolver(NamedValuesClient namedValuesClient,
-        IPolicyFragmentClient policyFragmentsClient)
+    public PolicyRelatedDependenciesResolver(
+        NamedValuesClient namedValuesClient,
+        IPolicyFragmentClient policyFragmentsClient,
+        ISchemasClient schemasClient
+        )
     {
         this.namedValuesClient = namedValuesClient;
         this.policyFragmentsClient = policyFragmentsClient;
+        this.schemasClient = schemasClient;
     }
 
     public async Task<IReadOnlyCollection<Entity>> Resolve(string policy)
@@ -30,6 +38,7 @@ public class PolicyRelatedDependenciesResolver: IPolicyRelatedDependenciesResolv
         var dependencies = new HashSet<Entity>();
         dependencies.UnionWith(await this.ResolvePolicyContent(policy));
         dependencies.UnionWith(await this.ResolvePolicyFragments(policy));
+        dependencies.UnionWith(await this.ResolveSchemas(policy));
         return dependencies;
     }
 
@@ -43,7 +52,7 @@ public class PolicyRelatedDependenciesResolver: IPolicyRelatedDependenciesResolv
 
     private async Task<IReadOnlyCollection<Entity>> ResolvePolicyFragments(string policy)
     {
-        var policyFragmentsNames = this.ExtractPolicyFragmentNames(policy);
+        var policyFragmentsNames = this.ExtractValuesWithRegex(policy, IncludeFragmentFinder);
         if (policyFragmentsNames.Count == 0)
         {
             return new List<Entity>(); 
@@ -51,7 +60,7 @@ public class PolicyRelatedDependenciesResolver: IPolicyRelatedDependenciesResolv
         else
         {
             var fragments = await this.policyFragmentsClient.Fetch(policyFragmentsNames);
-            var dependencies = new HashSet<Entity>();
+            var dependencies = new HashSet<Entity>(fragments);
             foreach (var fragment in fragments)
             {
                 dependencies.UnionWith(await this.ResolvePolicyContent(((PolicyFragmentsResource)fragment.ArmTemplate).Properties.Value));
@@ -60,8 +69,11 @@ public class PolicyRelatedDependenciesResolver: IPolicyRelatedDependenciesResolv
         }        
     }
 
-    private IReadOnlyCollection<string> ExtractPolicyFragmentNames(string policy) =>
-        IncludeFragmentFinder.Matches(policy).Select(_ => _.Groups[1].Value).ToHashSet();
+    private Task<IReadOnlyCollection<Entity>> ResolveSchemas(string policy)
+    {
+        var schemasNames = this.ExtractValuesWithRegex(policy, IncludeSchemaFinder);
+        return this.schemasClient.Fetch(schemasNames);
+    }
 
     private void ResolveBackends(string policy)
     {

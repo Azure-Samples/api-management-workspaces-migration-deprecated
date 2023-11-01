@@ -52,6 +52,7 @@ public class ClientBase : ApiClientBase
     {
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", azToken);
         HttpResponseMessage response = await this.HttpClient.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
         return response;
     }
