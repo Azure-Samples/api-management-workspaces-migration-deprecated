@@ -1,6 +1,6 @@
 # Azure API Management workspaces migration tool
 
-**This repository is no longer maintained. The tool hasn't been updated to migrate resource types introduced in workspaces since the release of the tool or to account for [the new workspaces data model](https://learn.microsoft.com/azure/api-management/breaking-changes/workspaces-breaking-changes-june-2024)."**
+**This repository is no longer maintained. The tool hasn't been updated to migrate resource types introduced in workspaces since the release of the tool or to account for [the new workspaces data model](https://learn.microsoft.com/azure/api-management/breaking-changes/workspaces-breaking-changes-june-2024).**
 
 With the Azure API Management workspaces migration tool, you can migrate selected service-level APIs with their dependencies from an Azure API Management instance to an Azure API Management [workspace](https://learn.microsoft.com/azure/api-management/workspaces-overview). 
 
