@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.PolicyFragments;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.Apis;
 using Newtonsoft.Json;
 using System.Text;
 using MigrationTool.Tests.Helpers;

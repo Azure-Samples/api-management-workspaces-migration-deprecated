@@ -126,6 +126,7 @@ public class Program
         collection.AddSingleton<IGatewayClient, GatewayClient>();
         collection.AddSingleton<ITagClient, TagClient>();
         collection.AddSingleton<IGroupsClient, GroupsClient>();
+        collection.AddSingleton<ISchemasClient, SchemasClient>();
 
         collection.AddSingleton<IPolicyRelatedDependenciesResolver, PolicyRelatedDependenciesResolver>();
         collection.AddSingleton<DependencyService, DependencyService>();
@@ -140,6 +141,7 @@ public class Program
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.PolicyFragment));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Subscription));
         collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.User));
+        collection.AddSingleton<IEntityDependencyResolver>(_ => new NoDependencyResolver(EntityType.Schema));
 
         collection.AddSingleton<DependencyGraphBuilder, DependencyGraphBuilder>();
         collection.AddSingleton<EntitiesRegistry, EntitiesRegistry>();
@@ -169,6 +171,15 @@ public class Program
         collection.AddSingleton<OperationHandler, PolicyFragmentsCopyHandler>();
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.Api | EntityType.PolicyFragment, typeof(ConnectOperation)));
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.ApiOperation | EntityType.PolicyFragment, typeof(ConnectOperation)));
+
+
+        collection.AddSingleton<OperationHandler, SchemaCopyHandler>();
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.Api | EntityType.Schema, typeof(ConnectOperation)));
+        collection.AddSingleton<OperationHandler>(_ =>
+            new EmptyHandler(EntityType.ApiOperation | EntityType.Schema, typeof(ConnectOperation)));
 
         collection.AddSingleton<OperationHandler>(_ =>
             new EmptyHandler(EntityType.ApiOperation | EntityType.NamedValue, typeof(ConnectOperation)));

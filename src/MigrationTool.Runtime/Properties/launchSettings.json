@@ -2,7 +2,7 @@
   "profiles": {
     "MigrationTool.Runtime": {
       "commandName": "Project",
-      "commandLineArgs": "-r mackotreder -s mtreder20220501"
+      "commandLineArgs": "-r rmielowski -s mtr-20221228"
     }
   }
 }

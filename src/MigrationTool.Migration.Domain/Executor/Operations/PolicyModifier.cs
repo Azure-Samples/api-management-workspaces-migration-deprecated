@@ -1,15 +1,12 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.Azure.Management.ApiManagement.ArmTemplates.Common.Templates.NamedValues;
+using MigrationTool.Migration.Domain.Dependencies.Resolvers;
 using MigrationTool.Migration.Domain.Entities;
 
 namespace MigrationTool.Migration.Domain.Executor.Operations;
 
 public class PolicyModifier
 {
-    private static readonly Regex IncludeFragmentFinder =
-        new Regex("<include-fragment\\s*fragment-id=\"([^\"]*)\"\\s*/>");
-    private static readonly Regex NamedValueFinder = new Regex("{{([^{}]*)}}");
-
     private readonly EntitiesRegistry registry;
 
     public PolicyModifier(EntitiesRegistry registry)
@@ -21,14 +18,18 @@ public class PolicyModifier
     {
         policy = this.ModifyIncludePolicyFragment(policy);
         policy = this.ModifyNamedValues(policy);
+        policy = this.ModifySchemas(policy);
         return policy;
     }
 
+    private string ModifySchemas(string policy) =>
+        this.ModifyPolicy(policy, PolicyRelatedDependenciesResolver.IncludeSchemaFinder, EntityType.Schema);
+
     private string ModifyNamedValues(string policy) =>
-        this.ModifyPolicy(policy, IncludeFragmentFinder, EntityType.PolicyFragment);
+        this.ModifyPolicy(policy, PolicyRelatedDependenciesResolver.IncludeFragmentFinder, EntityType.PolicyFragment);
 
     private string ModifyIncludePolicyFragment(string policy) =>
-        this.ModifyPolicy(policy, NamedValueFinder, EntityType.NamedValue);
+        this.ModifyPolicy(policy, PolicyRelatedDependenciesResolver.NamedValueFinder, EntityType.NamedValue);
 
     private string ModifyPolicy(string policy, Regex regex, EntityType entityType)
     {
@@ -42,6 +43,8 @@ public class PolicyModifier
                 {
                     case EntityType.NamedValue:
                         toBeInserted = ((NamedValueTemplateResource)entity.ArmTemplate).Properties.DisplayName; break;
+                    case EntityType.Schema:
+                        toBeInserted = entity.DisplayName; break;
                     case EntityType.PolicyFragment:
                         toBeInserted = entity.DisplayName; break;
                     default:

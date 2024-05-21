@@ -8,10 +8,10 @@ namespace MigrationTool.Migration.Domain.Dependencies;
 public class DependencyGraphBuilder
 {
     private static readonly IReadOnlySet<EntityType> ApiInboundTypes = new HashSet<EntityType>()
-        { EntityType.Product, EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment };
+        { EntityType.Product, EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment, EntityType.Schema };
 
     private static readonly IReadOnlySet<EntityType> ApiOperationInboundTypes = new HashSet<EntityType>()
-        { EntityType.Api, EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment };
+        { EntityType.Api, EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment, EntityType.Schema };
 
     private static readonly IReadOnlySet<EntityType> ProductInboundTypes = new HashSet<EntityType>()
         { EntityType.Tag, EntityType.NamedValue, EntityType.PolicyFragment, EntityType.Group };

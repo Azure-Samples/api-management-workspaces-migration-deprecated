@@ -22,4 +22,6 @@ public enum EntityType
     VersionSet = 1 << 8,
     [Description("User")]
     User = 1 << 9,
+    [Description("Schema")]
+    Schema = 1 << 10,
 }
