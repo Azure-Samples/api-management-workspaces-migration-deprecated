@@ -46,7 +46,7 @@ Other dependent resources aren't currently supported but are planned for future 
 
     ```  
     az login
-    az account set <your subscription ID>
+    az account set --subscription <subscription_id>
     ``` 
 
 1. Clone the repo and its submodules locally.
